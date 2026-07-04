@@ -24,6 +24,87 @@ function base64ToBlob(dataUrl: string) {
   return new Blob([arr], { type: mime });
 }
 
+// html2canvas cannot parse modern color functions (oklch/lab/color-mix) that
+// browsers return from getComputedStyle. Build a standalone offscreen card
+// using plain hex colors and inline styles so capture always works.
+function buildExportNode(opts: {
+  name: string;
+  birthday: string;
+  square: number[][];
+  total: number;
+}): HTMLDivElement {
+  const { name, birthday, square, total } = opts;
+  const wrap = document.createElement("div");
+  wrap.style.cssText = [
+    "position:fixed",
+    "left:-10000px",
+    "top:0",
+    "width:520px",
+    "padding:32px",
+    "background:#ffffff",
+    "color:#0f172a",
+    "font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
+    "border-radius:16px",
+    "box-sizing:border-box",
+  ].join(";");
+
+  const title = document.createElement("div");
+  title.style.cssText = "text-align:center;font-size:24px;font-weight:600;color:#0f172a";
+  title.textContent = `${name || "Your"} Magic Square`;
+  wrap.appendChild(title);
+
+  const sub = document.createElement("div");
+  sub.style.cssText = "text-align:center;font-size:13px;color:#64748b;margin-top:4px";
+  sub.textContent = birthday || "dd-mm-yyyy";
+  wrap.appendChild(sub);
+
+  const grid = document.createElement("div");
+  grid.style.cssText =
+    "display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:24px auto 0;max-width:400px";
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j < 4; j++) {
+      const cell = document.createElement("div");
+      const isTop = i === 0;
+      cell.style.cssText = [
+        "display:flex",
+        "align-items:center",
+        "justify-content:center",
+        "aspect-ratio:1/1",
+        "border-radius:10px",
+        "font-size:22px",
+        "font-weight:600",
+        isTop ? "background:#fde68a" : "background:#f1f5f9",
+        isTop ? "border:1px solid #f59e0b" : "border:1px solid #e2e8f0",
+        "color:#0f172a",
+      ].join(";");
+      cell.textContent = String(square[i][j]);
+      grid.appendChild(cell);
+    }
+  }
+  wrap.appendChild(grid);
+
+  const totalLabel = document.createElement("div");
+  totalLabel.style.cssText =
+    "text-align:center;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#64748b;margin-top:20px";
+  totalLabel.textContent = "Birthday Total";
+  wrap.appendChild(totalLabel);
+
+  const totalVal = document.createElement("div");
+  totalVal.style.cssText =
+    "text-align:center;font-size:36px;font-weight:700;color:#1f3a8a;margin-top:4px";
+  totalVal.textContent = String(total);
+  wrap.appendChild(totalVal);
+
+  const footer = document.createElement("div");
+  footer.style.cssText =
+    "text-align:center;margin-top:20px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#94a3b8";
+  footer.textContent = "Ramanujan Magic Square · CodeTech";
+  wrap.appendChild(footer);
+
+  document.body.appendChild(wrap);
+  return wrap;
+}
+
 type Pattern = { type: string; cells: Array<[number, number]> };
 
 const validPatterns: Pattern[] = [
@@ -140,13 +221,19 @@ function AppPage() {
   }
 
   async function shareAsPdf() {
-    if (!square || !exportRef.current) return;
+    if (!square || total === null) return;
     const [{ default: html2canvas }, jspdfMod] = await Promise.all([
       import("html2canvas"),
       import("jspdf"),
     ]);
     const jsPDF = (jspdfMod as any).jsPDF || (jspdfMod as any).default?.jsPDF;
-    const canvas = await html2canvas(exportRef.current, { scale: 2, backgroundColor: "#ffffff" });
+    const node = buildExportNode({ name, birthday, square, total });
+    let canvas: HTMLCanvasElement;
+    try {
+      canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff", logging: false });
+    } finally {
+      node.remove();
+    }
     const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [canvas.width, canvas.height] });
     pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, canvas.width, canvas.height);
     const fileName = `${(name || "Ramanujan").replace(/\s+/g, "_")}_MagicSquare_${birthday || "22-12-1887"}.pdf`;
@@ -167,9 +254,15 @@ function AppPage() {
   }
 
   async function shareAsImage() {
-    if (!square || !exportRef.current) return;
+    if (!square || total === null) return;
     const { default: html2canvas } = await import("html2canvas");
-    const canvas = await html2canvas(exportRef.current, { scale: 2, backgroundColor: "#ffffff" });
+    const node = buildExportNode({ name, birthday, square, total });
+    let canvas: HTMLCanvasElement;
+    try {
+      canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff", logging: false });
+    } finally {
+      node.remove();
+    }
     const dataUrl = canvas.toDataURL("image/png");
     const fileName = `${(name || "Ramanujan").replace(/\s+/g, "_")}_MagicSquare.png`;
     const blob = base64ToBlob(dataUrl);
