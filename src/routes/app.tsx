@@ -15,6 +15,15 @@ export const Route = createFileRoute("/app")({
   component: AppPage,
 });
 
+function base64ToBlob(dataUrl: string) {
+  const [meta, b64] = dataUrl.split(",");
+  const mime = /:(.*?);/.exec(meta)?.[1] || "application/octet-stream";
+  const bin = atob(b64);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
+
 type Pattern = { type: string; cells: Array<[number, number]> };
 
 const validPatterns: Pattern[] = [
@@ -140,7 +149,46 @@ function AppPage() {
     const canvas = await html2canvas(exportRef.current, { scale: 2, backgroundColor: "#ffffff" });
     const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [canvas.width, canvas.height] });
     pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, canvas.width, canvas.height);
-    pdf.save(`${(name || "Ramanujan").replace(/\s+/g, "_")}_MagicSquare_${birthday || "22-12-1887"}.pdf`);
+    const fileName = `${(name || "Ramanujan").replace(/\s+/g, "_")}_MagicSquare_${birthday || "22-12-1887"}.pdf`;
+    const pdfBlob: Blob = pdf.output("blob");
+    const shareData: any = {
+      title: `${name || "My"} Magic Square`,
+      text: `My personal Ramanujan magic square — total ${total ?? ""}. Made with Ramanujan Magic Square by CodeTech.`,
+    };
+    const file = new File([pdfBlob], fileName, { type: "application/pdf" });
+    const nav: any = typeof navigator !== "undefined" ? navigator : null;
+    if (nav?.canShare && nav.canShare({ files: [file] })) {
+      try {
+        await nav.share({ ...shareData, files: [file] });
+        return;
+      } catch { /* fall through to download */ }
+    }
+    pdf.save(fileName);
+  }
+
+  async function shareAsImage() {
+    if (!square || !exportRef.current) return;
+    const { default: html2canvas } = await import("html2canvas");
+    const canvas = await html2canvas(exportRef.current, { scale: 2, backgroundColor: "#ffffff" });
+    const dataUrl = canvas.toDataURL("image/png");
+    const fileName = `${(name || "Ramanujan").replace(/\s+/g, "_")}_MagicSquare.png`;
+    const blob = base64ToBlob(dataUrl);
+    const file = new File([blob], fileName, { type: "image/png" });
+    const nav: any = typeof navigator !== "undefined" ? navigator : null;
+    if (nav?.canShare && nav.canShare({ files: [file] })) {
+      try {
+        await nav.share({
+          title: `${name || "My"} Magic Square`,
+          text: `My Ramanujan magic square — total ${total ?? ""}.`,
+          files: [file],
+        });
+        return;
+      } catch { /* fall through */ }
+    }
+    const a = document.createElement("a");
+    a.href = dataUrl;
+    a.download = fileName;
+    a.click();
   }
 
   const hasSquare = !!square;
