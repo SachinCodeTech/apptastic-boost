@@ -194,13 +194,13 @@ function AppPage() {
   const hasSquare = !!square;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-16">
       <div className="text-center">
-        <h1 className="font-display text-4xl sm:text-5xl">Generate your Magic Square</h1>
-        <p className="mt-3 text-muted-foreground">Enter your details — everything runs locally in your browser.</p>
+        <h1 className="font-display text-3xl leading-tight sm:text-5xl">Generate your Magic Square</h1>
+        <p className="mt-3 px-2 text-sm text-muted-foreground sm:text-base">Enter your details — everything runs locally in your browser.</p>
       </div>
 
-      <div className="mt-10 grid gap-6 rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)] sm:p-8">
+      <div className="mt-6 grid gap-5 rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)] sm:mt-10 sm:gap-6 sm:p-8">
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
             <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Your Name</span>
@@ -228,39 +228,43 @@ function AppPage() {
         {error && <p className="text-sm text-destructive">{error}</p>}
         {showSuccess && <p className="text-sm font-medium" style={{ color: "oklch(0.55 0.18 150)" }}>Magic Square Generated!</p>}
 
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
           <button onClick={generate}
-            className="inline-flex h-10 items-center rounded-lg px-4 text-sm font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5"
+            className="col-span-2 inline-flex h-11 items-center justify-center rounded-lg px-4 text-sm font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5 sm:col-span-1"
             style={{ background: "var(--gradient-hero)" }}>
             Generate
           </button>
           <button onClick={() => isCycling ? stopCycling() : startCycling()} disabled={!hasSquare}
-            className="inline-flex h-10 items-center rounded-lg border border-border bg-card px-4 text-sm font-medium hover:bg-secondary disabled:opacity-40">
+            className="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-medium hover:bg-secondary disabled:opacity-40">
             {isCycling ? "Stop Cycling" : "Cycle Patterns"}
           </button>
           <button onClick={shareAsPdf} disabled={!hasSquare}
-            className="inline-flex h-10 items-center rounded-lg px-4 text-sm font-semibold text-primary-foreground disabled:opacity-40"
+            className="inline-flex h-11 items-center justify-center rounded-lg px-4 text-sm font-semibold text-primary-foreground disabled:opacity-40"
             style={{ background: "var(--gradient-accent)" }}>
             Share PDF
           </button>
+          <button onClick={shareAsImage} disabled={!hasSquare}
+            className="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-medium hover:bg-secondary disabled:opacity-40">
+            Share Image
+          </button>
           <button onClick={clearAll}
-            className="inline-flex h-10 items-center rounded-lg border border-border bg-card px-4 text-sm font-medium hover:bg-secondary">
+            className="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-medium hover:bg-secondary">
             Clear
           </button>
           <button onClick={() => setShowInfo(true)}
-            className="inline-flex h-10 items-center rounded-lg border border-border bg-card px-4 text-sm font-medium hover:bg-secondary">
+            className="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-medium hover:bg-secondary">
             Info
           </button>
         </div>
       </div>
 
       {/* The square (exportable region) */}
-      <div ref={exportRef} className="mt-8 rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)] sm:p-8">
+      <div ref={exportRef} className="mt-6 overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)] sm:mt-8 sm:p-8">
         <div className="text-center">
-          <p className="font-display text-2xl">{name || "Your"} Magic Square</p>
-          <p className="text-sm text-muted-foreground">{birthday || "dd-mm-yyyy"}</p>
+          <p className="font-display text-xl sm:text-2xl">{name || "Your"} Magic Square</p>
+          <p className="text-xs text-muted-foreground sm:text-sm">{birthday || "dd-mm-yyyy"}</p>
         </div>
-        <div className="mx-auto mt-6 grid aspect-square w-full max-w-sm grid-cols-4 gap-1.5">
+        <div className="mx-auto mt-5 grid aspect-square w-full max-w-[22rem] grid-cols-4 gap-1.5 sm:mt-6 sm:max-w-sm">
           {Array.from({ length: 4 }).flatMap((_, i) =>
             Array.from({ length: 4 }).map((_, j) => {
               const key = `${i}-${j}`;
@@ -271,7 +275,7 @@ function AppPage() {
                 <div
                   key={key}
                   className={
-                    "flex items-center justify-center rounded-lg font-display text-xl transition-all duration-300 sm:text-2xl " +
+                    "flex items-center justify-center rounded-lg font-display text-lg transition-all duration-300 sm:text-2xl " +
                     (isHi
                       ? "scale-105 text-foreground shadow-md"
                       : isFirstRow
@@ -294,9 +298,10 @@ function AppPage() {
         </div>
         {total !== null && (
           <div className="mt-5 flex flex-col items-center gap-1 text-center">
-            <p className="text-sm text-muted-foreground">Birthday Total</p>
-            <p className="font-display text-3xl">{total}</p>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground sm:text-sm">Birthday Total</p>
+            <p className="font-display text-3xl sm:text-4xl">{total}</p>
             {patternLabel && <p className="mt-1 text-xs font-medium text-accent-foreground">{patternLabel}</p>}
+            <p className="mt-3 text-[10px] uppercase tracking-widest text-muted-foreground/70">Ramanujan Magic Square · CodeTech</p>
           </div>
         )}
       </div>
