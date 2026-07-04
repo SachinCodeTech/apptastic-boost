@@ -221,13 +221,19 @@ function AppPage() {
   }
 
   async function shareAsPdf() {
-    if (!square || !exportRef.current) return;
+    if (!square || total === null) return;
     const [{ default: html2canvas }, jspdfMod] = await Promise.all([
       import("html2canvas"),
       import("jspdf"),
     ]);
     const jsPDF = (jspdfMod as any).jsPDF || (jspdfMod as any).default?.jsPDF;
-    const canvas = await html2canvas(exportRef.current, { scale: 2, backgroundColor: "#ffffff" });
+    const node = buildExportNode({ name, birthday, square, total });
+    let canvas: HTMLCanvasElement;
+    try {
+      canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff", logging: false });
+    } finally {
+      node.remove();
+    }
     const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [canvas.width, canvas.height] });
     pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, canvas.width, canvas.height);
     const fileName = `${(name || "Ramanujan").replace(/\s+/g, "_")}_MagicSquare_${birthday || "22-12-1887"}.pdf`;
@@ -248,9 +254,15 @@ function AppPage() {
   }
 
   async function shareAsImage() {
-    if (!square || !exportRef.current) return;
+    if (!square || total === null) return;
     const { default: html2canvas } = await import("html2canvas");
-    const canvas = await html2canvas(exportRef.current, { scale: 2, backgroundColor: "#ffffff" });
+    const node = buildExportNode({ name, birthday, square, total });
+    let canvas: HTMLCanvasElement;
+    try {
+      canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff", logging: false });
+    } finally {
+      node.remove();
+    }
     const dataUrl = canvas.toDataURL("image/png");
     const fileName = `${(name || "Ramanujan").replace(/\s+/g, "_")}_MagicSquare.png`;
     const blob = base64ToBlob(dataUrl);
