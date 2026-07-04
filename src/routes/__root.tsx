@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SiteHeader } from "../components/SiteHeader";
 import { SiteFooter } from "../components/SiteFooter";
+import { registerPWA } from "../lib/pwa-register";
 
 function NotFoundComponent() {
   return (
@@ -78,11 +79,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "Ramanujan Magic Square — CodeTech" },
       { name: "description", content: "Generate a personal 4x4 Ramanujan-style magic square from your birthday. By CodeTech, Lead Developer Sachin Sheth." },
       { name: "author", content: "CodeTech" },
       { name: "theme-color", content: "#1f3a8a" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Magic Square" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "application-name", content: "Ramanujan Magic Square" },
+      { property: "og:site_name", content: "Ramanujan Magic Square" },
       { property: "og:title", content: "Ramanujan Magic Square — CodeTech" },
       { property: "og:description", content: "Turn your birthday into a magical 4x4 number square inspired by Srinivasa Ramanujan." },
       { property: "og:type", content: "website" },
@@ -96,6 +103,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "icon", type: "image/png", sizes: "512x512", href: "/app-icon.png" },
+      { rel: "apple-touch-icon", href: "/app-icon.png", sizes: "512x512" },
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap",
@@ -124,6 +133,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useEffect(() => { registerPWA(); }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
