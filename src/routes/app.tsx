@@ -15,94 +15,142 @@ export const Route = createFileRoute("/app")({
   component: AppPage,
 });
 
-function base64ToBlob(dataUrl: string) {
-  const [meta, b64] = dataUrl.split(",");
-  const mime = /:(.*?);/.exec(meta)?.[1] || "application/octet-stream";
-  const bin = atob(b64);
-  const arr = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-  return new Blob([arr], { type: mime });
+function safeFileName(value: string) {
+  return (value || "Ramanujan").trim().replace(/[^a-z0-9_-]+/gi, "_").replace(/^_+|_+$/g, "") || "Ramanujan";
 }
 
-// html2canvas cannot parse modern color functions (oklch/lab/color-mix) that
-// browsers return from getComputedStyle. Build a standalone offscreen card
-// using plain hex colors and inline styles so capture always works.
-function buildExportNode(opts: {
+function drawRoundRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.arcTo(x + width, y, x + width, y + height, radius);
+  ctx.arcTo(x + width, y + height, x, y + height, radius);
+  ctx.arcTo(x, y + height, x, y, radius);
+  ctx.arcTo(x, y, x + width, y, radius);
+  ctx.closePath();
+}
+
+function drawCenteredText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  font: string,
+  color: string,
+) {
+  ctx.font = font;
+  ctx.fillStyle = color;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, x, y);
+}
+
+async function buildShareCardCanvas(opts: {
   name: string;
   birthday: string;
   square: number[][];
   total: number;
-}): HTMLDivElement {
+}): Promise<HTMLCanvasElement> {
+  if (document.fonts?.ready) await document.fonts.ready.catch(() => undefined);
   const { name, birthday, square, total } = opts;
-  const wrap = document.createElement("div");
-  wrap.style.cssText = [
-    "position:fixed",
-    "left:-10000px",
-    "top:0",
-    "width:520px",
-    "padding:32px",
-    "background:#ffffff",
-    "color:#0f172a",
-    "font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
-    "border-radius:16px",
-    "box-sizing:border-box",
-  ].join(";");
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080;
+  canvas.height = 1350;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Could not create share card.");
 
-  const title = document.createElement("div");
-  title.style.cssText = "text-align:center;font-size:24px;font-weight:600;color:#0f172a";
-  title.textContent = `${name || "Your"} Magic Square`;
-  wrap.appendChild(title);
+  ctx.fillStyle = "#f7f5ef";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  const sub = document.createElement("div");
-  sub.style.cssText = "text-align:center;font-size:13px;color:#64748b;margin-top:4px";
-  sub.textContent = birthday || "dd-mm-yyyy";
-  wrap.appendChild(sub);
+  drawRoundRect(ctx, 70, 70, 940, 1210, 42);
+  ctx.fillStyle = "#ffffff";
+  ctx.fill();
+  ctx.strokeStyle = "#e6dfd2";
+  ctx.lineWidth = 3;
+  ctx.stroke();
 
-  const grid = document.createElement("div");
-  grid.style.cssText =
-    "display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:24px auto 0;max-width:400px";
+  drawRoundRect(ctx, 112, 112, 64, 64, 16);
+  ctx.fillStyle = "#0b5cab";
+  ctx.fill();
+  drawCenteredText(ctx, "R", 144, 144, "700 30px Georgia, serif", "#ffffff");
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  ctx.font = "500 28px Georgia, serif";
+  ctx.fillStyle = "#14213d";
+  ctx.fillText("Ramanujan Magic Square", 196, 144);
+
+  drawCenteredText(ctx, `${name || "Your"} Magic Square`, 540, 275, "500 58px Georgia, serif", "#14213d");
+  drawCenteredText(ctx, birthday || "dd-mm-yyyy", 540, 334, "500 28px Arial, sans-serif", "#64748b");
+
+  const gridX = 150;
+  const gridY = 410;
+  const gridSize = 780;
+  const gap = 18;
+  const cell = (gridSize - gap * 3) / 4;
   for (let i = 0; i < 4; i++) {
     for (let j = 0; j < 4; j++) {
-      const cell = document.createElement("div");
-      const isTop = i === 0;
-      cell.style.cssText = [
-        "display:flex",
-        "align-items:center",
-        "justify-content:center",
-        "aspect-ratio:1/1",
-        "border-radius:10px",
-        "font-size:22px",
-        "font-weight:600",
-        isTop ? "background:#fde68a" : "background:#f1f5f9",
-        isTop ? "border:1px solid #f59e0b" : "border:1px solid #e2e8f0",
-        "color:#0f172a",
-      ].join(";");
-      cell.textContent = String(square[i][j]);
-      grid.appendChild(cell);
+      const x = gridX + j * (cell + gap);
+      const y = gridY + i * (cell + gap);
+      drawRoundRect(ctx, x, y, cell, cell, 22);
+      ctx.fillStyle = i === 0 ? "#fde68a" : "#f1f5f9";
+      ctx.fill();
+      ctx.strokeStyle = i === 0 ? "#f59e0b" : "#e2e8f0";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      drawCenteredText(ctx, String(square[i][j]), x + cell / 2, y + cell / 2, "600 58px Georgia, serif", "#0f172a");
     }
   }
-  wrap.appendChild(grid);
 
-  const totalLabel = document.createElement("div");
-  totalLabel.style.cssText =
-    "text-align:center;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#64748b;margin-top:20px";
-  totalLabel.textContent = "Birthday Total";
-  wrap.appendChild(totalLabel);
+  drawCenteredText(ctx, "BIRTHDAY TOTAL", 540, 1062, "700 24px Arial, sans-serif", "#64748b");
+  drawCenteredText(ctx, String(total), 540, 1130, "700 82px Georgia, serif", "#1f3a8a");
+  drawCenteredText(ctx, "RAMANUJAN MAGIC SQUARE · CODETECH", 540, 1220, "700 22px Arial, sans-serif", "#94a3b8");
+  drawCenteredText(ctx, "Lead Developer: Sachin Sheth", 540, 1258, "500 20px Arial, sans-serif", "#64748b");
 
-  const totalVal = document.createElement("div");
-  totalVal.style.cssText =
-    "text-align:center;font-size:36px;font-weight:700;color:#1f3a8a;margin-top:4px";
-  totalVal.textContent = String(total);
-  wrap.appendChild(totalVal);
+  return canvas;
+}
 
-  const footer = document.createElement("div");
-  footer.style.cssText =
-    "text-align:center;margin-top:20px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#94a3b8";
-  footer.textContent = "Ramanujan Magic Square · CodeTech";
-  wrap.appendChild(footer);
+function canvasToPngBlob(canvas: HTMLCanvasElement) {
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error("Could not create image file."));
+    }, "image/png");
+  });
+}
 
-  document.body.appendChild(wrap);
-  return wrap;
+function downloadBlob(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  a.style.display = "none";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
+}
+
+async function shareOrDownload(file: File, shareData: { title: string; text: string }) {
+  const nav = typeof navigator !== "undefined" ? (navigator as Navigator & {
+    canShare?: (data: ShareData) => boolean;
+    share?: (data: ShareData) => Promise<void>;
+  }) : null;
+  if (nav?.canShare?.({ files: [file] }) && nav.share) {
+    try {
+      await nav.share({ ...shareData, files: [file] });
+      return "shared" as const;
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return "cancelled" as const;
+    }
+  }
+  downloadBlob(file, file.name);
+  return "downloaded" as const;
 }
 
 type Pattern = { type: string; cells: Array<[number, number]> };
