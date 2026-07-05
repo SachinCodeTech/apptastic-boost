@@ -191,6 +191,8 @@ function AppPage() {
   const [isCycling, setIsCycling] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [exportMessage, setExportMessage] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
   const cycleIdx = useRef(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const exportRef = useRef<HTMLDivElement>(null);
@@ -213,6 +215,7 @@ function AppPage() {
 
   function generate() {
     stopCycling();
+    setExportMessage("");
     const parts = birthday.split("-");
     if (parts.length !== 3) { setError("Use format: dd-mm-yyyy"); return; }
     const DD = parseInt(parts[0]), MM = parseInt(parts[1]), YYYY = parseInt(parts[2]);
@@ -265,71 +268,54 @@ function AppPage() {
   function clearAll() {
     stopCycling();
     setName(""); setBirthday(""); setSquare(null); setTotal(null);
-    setVerified([]); setError(""); setPatternLabel("");
+    setVerified([]); setError(""); setPatternLabel(""); setExportMessage("");
   }
 
   async function shareAsPdf() {
     if (!square || total === null) return;
-    const [{ default: html2canvas }, jspdfMod] = await Promise.all([
-      import("html2canvas"),
-      import("jspdf"),
-    ]);
-    const jsPDF = (jspdfMod as any).jsPDF || (jspdfMod as any).default?.jsPDF;
-    const node = buildExportNode({ name, birthday, square, total });
-    let canvas: HTMLCanvasElement;
+    setIsExporting(true);
+    setExportMessage("");
     try {
-      canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff", logging: false });
+      const [{ jsPDF }, canvas] = await Promise.all([
+        import("jspdf"),
+        buildShareCardCanvas({ name, birthday, square, total }),
+      ]);
+      const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [canvas.width, canvas.height] });
+      pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, canvas.width, canvas.height);
+      const fileName = `${safeFileName(name)}_MagicSquare_${birthday || "card"}.pdf`;
+      const pdfBlob: Blob = pdf.output("blob");
+      const file = new File([pdfBlob], fileName, { type: "application/pdf" });
+      const result = await shareOrDownload(file, {
+        title: `${name || "My"} Magic Square`,
+        text: `My personal Ramanujan magic square — total ${total}. Made with Ramanujan Magic Square by CodeTech.`,
+      });
+      setExportMessage(result === "shared" ? "PDF shared successfully." : result === "downloaded" ? "PDF downloaded." : "PDF share cancelled.");
+    } catch {
+      setExportMessage("PDF export failed. Please try Share Image instead.");
     } finally {
-      node.remove();
+      setIsExporting(false);
     }
-    const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [canvas.width, canvas.height] });
-    pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, canvas.width, canvas.height);
-    const fileName = `${(name || "Ramanujan").replace(/\s+/g, "_")}_MagicSquare_${birthday || "22-12-1887"}.pdf`;
-    const pdfBlob: Blob = pdf.output("blob");
-    const shareData: any = {
-      title: `${name || "My"} Magic Square`,
-      text: `My personal Ramanujan magic square — total ${total ?? ""}. Made with Ramanujan Magic Square by CodeTech.`,
-    };
-    const file = new File([pdfBlob], fileName, { type: "application/pdf" });
-    const nav: any = typeof navigator !== "undefined" ? navigator : null;
-    if (nav?.canShare && nav.canShare({ files: [file] })) {
-      try {
-        await nav.share({ ...shareData, files: [file] });
-        return;
-      } catch { /* fall through to download */ }
-    }
-    pdf.save(fileName);
   }
 
   async function shareAsImage() {
     if (!square || total === null) return;
-    const { default: html2canvas } = await import("html2canvas");
-    const node = buildExportNode({ name, birthday, square, total });
-    let canvas: HTMLCanvasElement;
+    setIsExporting(true);
+    setExportMessage("");
     try {
-      canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff", logging: false });
+      const canvas = await buildShareCardCanvas({ name, birthday, square, total });
+      const blob = await canvasToPngBlob(canvas);
+      const fileName = `${safeFileName(name)}_MagicSquare.png`;
+      const file = new File([blob], fileName, { type: "image/png" });
+      const result = await shareOrDownload(file, {
+        title: `${name || "My"} Magic Square`,
+        text: `My Ramanujan magic square — total ${total}.`,
+      });
+      setExportMessage(result === "shared" ? "Image shared successfully." : result === "downloaded" ? "Image downloaded." : "Image share cancelled.");
+    } catch {
+      setExportMessage("Image export failed. Please try again.");
     } finally {
-      node.remove();
+      setIsExporting(false);
     }
-    const dataUrl = canvas.toDataURL("image/png");
-    const fileName = `${(name || "Ramanujan").replace(/\s+/g, "_")}_MagicSquare.png`;
-    const blob = base64ToBlob(dataUrl);
-    const file = new File([blob], fileName, { type: "image/png" });
-    const nav: any = typeof navigator !== "undefined" ? navigator : null;
-    if (nav?.canShare && nav.canShare({ files: [file] })) {
-      try {
-        await nav.share({
-          title: `${name || "My"} Magic Square`,
-          text: `My Ramanujan magic square — total ${total ?? ""}.`,
-          files: [file],
-        });
-        return;
-      } catch { /* fall through */ }
-    }
-    const a = document.createElement("a");
-    a.href = dataUrl;
-    a.download = fileName;
-    a.click();
   }
 
   const hasSquare = !!square;
@@ -368,6 +354,7 @@ function AppPage() {
 
         {error && <p className="text-sm text-destructive">{error}</p>}
         {showSuccess && <p className="text-sm font-medium" style={{ color: "oklch(0.55 0.18 150)" }}>Magic Square Generated!</p>}
+        {exportMessage && <p className="text-sm font-medium text-muted-foreground">{exportMessage}</p>}
 
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
           <button onClick={generate}
@@ -379,12 +366,12 @@ function AppPage() {
             className="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-medium hover:bg-secondary disabled:opacity-40">
             {isCycling ? "Stop Cycling" : "Cycle Patterns"}
           </button>
-          <button onClick={shareAsPdf} disabled={!hasSquare}
+          <button onClick={shareAsPdf} disabled={!hasSquare || isExporting}
             className="inline-flex h-11 items-center justify-center rounded-lg px-4 text-sm font-semibold text-primary-foreground disabled:opacity-40"
             style={{ background: "var(--gradient-accent)" }}>
-            Share PDF
+            {isExporting ? "Preparing..." : "Share PDF"}
           </button>
-          <button onClick={shareAsImage} disabled={!hasSquare}
+          <button onClick={shareAsImage} disabled={!hasSquare || isExporting}
             className="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-medium hover:bg-secondary disabled:opacity-40">
             Share Image
           </button>
