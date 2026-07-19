@@ -88,10 +88,10 @@ async function buildShareCardCanvas(opts: {
   drawCenteredText(ctx, `${name || "Your"} Magic Square`, 540, 275, "500 58px Georgia, serif", "#14213d");
   drawCenteredText(ctx, birthday || "dd-mm-yyyy", 540, 334, "500 28px Arial, sans-serif", "#64748b");
 
-  const gridX = 150;
-  const gridY = 410;
-  const gridSize = 780;
-  const gap = 18;
+  const gridX = 168;
+  const gridY = 386;
+  const gridSize = 744;
+  const gap = 16;
   const cell = (gridSize - gap * 3) / 4;
   for (let i = 0; i < 4; i++) {
     for (let j = 0; j < 4; j++) {
@@ -103,14 +103,14 @@ async function buildShareCardCanvas(opts: {
       ctx.strokeStyle = i === 0 ? "#f59e0b" : "#e2e8f0";
       ctx.lineWidth = 3;
       ctx.stroke();
-      drawCenteredText(ctx, String(square[i][j]), x + cell / 2, y + cell / 2, "600 58px Georgia, serif", "#0f172a");
+      drawCenteredText(ctx, String(square[i][j]), x + cell / 2, y + cell / 2, "600 54px Georgia, serif", "#0f172a");
     }
   }
 
-  drawCenteredText(ctx, "BIRTHDAY TOTAL", 540, 1062, "700 24px Arial, sans-serif", "#64748b");
-  drawCenteredText(ctx, String(total), 540, 1130, "700 82px Georgia, serif", "#1f3a8a");
-  drawCenteredText(ctx, "RAMANUJAN MAGIC SQUARE · CODETECH", 540, 1220, "700 22px Arial, sans-serif", "#94a3b8");
-  drawCenteredText(ctx, "Lead Developer: Sachin Sheth", 540, 1258, "500 20px Arial, sans-serif", "#64748b");
+  drawCenteredText(ctx, "BIRTHDAY TOTAL", 540, 1168, "700 24px Arial, sans-serif", "#64748b");
+  drawCenteredText(ctx, String(total), 540, 1228, "700 72px Georgia, serif", "#1f3a8a");
+  drawCenteredText(ctx, "RAMANUJAN MAGIC SQUARE · CODETECH", 540, 1288, "700 20px Arial, sans-serif", "#94a3b8");
+  drawCenteredText(ctx, "Lead Developer: Sachin Sheth", 540, 1320, "500 18px Arial, sans-serif", "#64748b");
 
   return canvas;
 }
