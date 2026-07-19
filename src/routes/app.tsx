@@ -117,54 +117,215 @@ async function buildShareCardCanvas(opts: {
 
 function canvasToPngBlob(canvas: HTMLCanvasElement) {
   return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (blob) resolve(blob);
-      else reject(new Error("Could not create image file."));
-    }, "image/png");
+    if (canvas.toBlob) {
+      canvas.toBlob((blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("Could not create image file."));
+      }, "image/png");
+      return;
+    }
+
+    try {
+      const binary = atob(canvas.toDataURL("image/png").split(",")[1] || "");
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      resolve(new Blob([bytes], { type: "image/png" }));
+    } catch {
+      reject(new Error("Could not create image file."));
+    }
   });
 }
 
-function downloadBlob(blob: Blob, fileName: string) {
+function makeShareFile(parts: BlobPart[], fileName: string, type: string) {
+  if (typeof File === "function") {
+    return new File(parts, fileName, { type, lastModified: Date.now() });
+  }
+
+  return Object.assign(new Blob(parts, { type }), {
+    name: fileName,
+    lastModified: Date.now(),
+  }) as File;
+}
+
+function isInsideFrame() {
+  try {
+    return typeof window !== "undefined" && window.self !== window.top;
+  } catch {
+    return true;
+  }
+}
+
+function reserveDownloadWindow() {
+  if (!isInsideFrame()) return null;
+
+  try {
+    const fallbackWindow = window.open("", "_blank");
+    if (!fallbackWindow) return null;
+    fallbackWindow.document.title = "Preparing Magic Square card";
+    fallbackWindow.document.body.style.margin = "0";
+    fallbackWindow.document.body.style.fontFamily = "Arial, sans-serif";
+    fallbackWindow.document.body.style.background = "#f7f5ef";
+    fallbackWindow.document.body.style.color = "#14213d";
+    fallbackWindow.document.body.innerHTML = "<main style='min-height:100vh;display:grid;place-items:center;padding:24px;text-align:center'><div><h1 style='font-size:22px;margin:0 0 8px'>Preparing your card…</h1><p style='margin:0;color:#64748b'>Keep this tab open for the download.</p></div></main>";
+    return fallbackWindow;
+  } catch {
+    return null;
+  }
+}
+
+function closeReservedWindow(fallbackWindow?: Window | null) {
+  try {
+    if (fallbackWindow && !fallbackWindow.closed) fallbackWindow.close();
+  } catch {
+    // Ignore browser restrictions around auxiliary windows.
+  }
+}
+
+function downloadBlob(blob: Blob, fileName: string, fallbackWindow?: Window | null) {
   const url = URL.createObjectURL(blob);
+
+  if (fallbackWindow && !fallbackWindow.closed) {
+    try {
+      fallbackWindow.document.title = fileName;
+      fallbackWindow.document.body.style.margin = "0";
+      fallbackWindow.document.body.style.fontFamily = "Arial, sans-serif";
+      fallbackWindow.document.body.style.background = "#f7f5ef";
+      fallbackWindow.document.body.style.color = "#14213d";
+      fallbackWindow.document.body.innerHTML = "";
+      const main = fallbackWindow.document.createElement("main");
+      main.style.minHeight = "100vh";
+      main.style.display = "grid";
+      main.style.placeItems = "center";
+      main.style.padding = "24px";
+      main.style.textAlign = "center";
+
+      const wrap = fallbackWindow.document.createElement("div");
+      const title = fallbackWindow.document.createElement("h1");
+      title.textContent = "Your Magic Square card is ready";
+      title.style.fontSize = "22px";
+      title.style.margin = "0 0 12px";
+
+      const link = fallbackWindow.document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      link.textContent = `Download ${fileName}`;
+      link.style.display = "inline-flex";
+      link.style.minHeight = "44px";
+      link.style.alignItems = "center";
+      link.style.justifyContent = "center";
+      link.style.padding = "0 18px";
+      link.style.borderRadius = "10px";
+      link.style.background = "#1f3a8a";
+      link.style.color = "#ffffff";
+      link.style.textDecoration = "none";
+      link.style.fontWeight = "700";
+
+      const note = fallbackWindow.document.createElement("p");
+      note.textContent = "If the download did not start automatically, tap the button.";
+      note.style.margin = "12px 0 0";
+      note.style.color = "#64748b";
+
+      wrap.append(title, link, note);
+      main.appendChild(wrap);
+      fallbackWindow.document.body.appendChild(main);
+      link.click();
+      fallbackWindow.focus();
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      return "opened" as const;
+    } catch {
+      try {
+        fallbackWindow.location.href = url;
+        window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        return "opened" as const;
+      } catch {
+        // Fall through to same-window anchor download.
+      }
+    }
+  }
+
   const a = document.createElement("a");
   a.href = url;
   a.download = fileName;
-  a.target = "_blank";
   a.rel = "noopener";
   a.style.display = "none";
   document.body.appendChild(a);
   a.click();
   a.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  return "downloaded" as const;
 }
 
-async function shareOrDownload(file: File, shareData: { title: string; text: string }) {
+type ShareAttemptResult = "shared" | "fallback-shared" | "downloaded" | "opened" | "cancelled";
+
+function getShareNavigator() {
+  return typeof navigator !== "undefined" ? (navigator as Navigator & {
+    canShare?: (data: ShareData) => boolean;
+    share?: (data: ShareData) => Promise<void>;
+  }) : null;
+}
+
+function canNativeShareFile(file: File, shareData: { title: string; text: string }) {
+  const nav = getShareNavigator();
+  if (!nav?.share || isInsideFrame()) return false;
+  if (typeof window !== "undefined" && window.isSecureContext === false) return false;
+  if (typeof nav.canShare !== "function") return false;
+
+  try {
+    return nav.canShare({ ...shareData, files: [file] });
+  } catch {
+    try {
+      return nav.canShare({ files: [file] });
+    } catch {
+      return false;
+    }
+  }
+}
+
+async function tryNativeShareFile(file: File, shareData: { title: string; text: string }) {
   const nav = typeof navigator !== "undefined" ? (navigator as Navigator & {
     canShare?: (data: ShareData) => boolean;
     share?: (data: ShareData) => Promise<void>;
   }) : null;
 
-  let isFramed = false;
+  if (!nav?.share || !canNativeShareFile(file, shareData)) return "unsupported" as const;
+
   try {
-    isFramed = typeof window !== "undefined" && window.self !== window.top;
-  } catch {
-    isFramed = true;
+    await nav.share({ ...shareData, files: [file] });
+    return "shared" as const;
+  } catch (err) {
+    const name = err instanceof DOMException ? err.name : (err as { name?: string })?.name;
+    if (name === "AbortError") return "cancelled" as const;
+    return "failed" as const;
+  }
+}
+
+async function shareOrDownload(
+  file: File,
+  shareData: { title: string; text: string },
+  opts: { fallbackShareFile?: File; fallbackWindow?: Window | null } = {},
+): Promise<ShareAttemptResult> {
+  const primaryResult = await tryNativeShareFile(file, shareData);
+  if (primaryResult === "shared" || primaryResult === "cancelled") {
+    closeReservedWindow(opts.fallbackWindow);
+    return primaryResult;
   }
 
-  const canShareFiles = !!nav?.share && !isFramed && (
-    typeof nav.canShare !== "function" || nav.canShare({ files: [file] })
-  );
-
-  if (canShareFiles && nav?.share) {
-    try {
-      await nav.share({ ...shareData, files: [file] });
-      return "shared" as const;
-    } catch (err) {
-      if (err instanceof DOMException && err.name === "AbortError") return "cancelled" as const;
+  if (opts.fallbackShareFile && opts.fallbackShareFile !== file) {
+    const fallbackResult = await tryNativeShareFile(opts.fallbackShareFile, {
+      ...shareData,
+      text: `${shareData.text} PDF sharing is not available on this device, so this image card is shared instead.`,
+    });
+    if (fallbackResult === "shared") {
+      closeReservedWindow(opts.fallbackWindow);
+      return "fallback-shared";
+    }
+    if (fallbackResult === "cancelled") {
+      closeReservedWindow(opts.fallbackWindow);
+      return "cancelled";
     }
   }
-  downloadBlob(file, file.name);
-  return "downloaded" as const;
+
+  return downloadBlob(file, file.name, opts.fallbackWindow);
 }
 
 type PreparedShareFiles = {
@@ -190,12 +351,12 @@ async function createShareFiles(opts: {
   ]);
 
   const imageBlob = await canvasToPngBlob(canvas);
-  const image = new File([imageBlob], `${safeFileName(opts.name)}_MagicSquare.png`, { type: "image/png" });
+  const image = makeShareFile([imageBlob], `${safeFileName(opts.name)}_MagicSquare.png`, "image/png");
 
   const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [canvas.width, canvas.height] });
   pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, canvas.width, canvas.height);
   const pdfBlob: Blob = pdf.output("blob");
-  const pdfFile = new File([pdfBlob], `${safeFileName(opts.name)}_MagicSquare_${opts.birthday || "card"}.pdf`, { type: "application/pdf" });
+  const pdfFile = makeShareFile([pdfBlob], `${safeFileName(opts.name)}_MagicSquare_${opts.birthday || "card"}.pdf`, "application/pdf");
 
   return { key: opts.key, image, pdf: pdfFile };
 }
