@@ -68,7 +68,7 @@ async function buildShareCardCanvas(opts: {
   ctx.fillStyle = "#f7f5ef";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  drawRoundRect(ctx, 70, 70, 940, 1240, 42);
+  drawRoundRect(ctx, 70, 70, 940, 1260, 42);
   ctx.fillStyle = "#ffffff";
   ctx.fill();
   ctx.strokeStyle = "#e6dfd2";
@@ -107,10 +107,10 @@ async function buildShareCardCanvas(opts: {
     }
   }
 
-  drawCenteredText(ctx, "BIRTHDAY TOTAL", 540, 1158, "700 23px Arial, sans-serif", "#64748b");
-  drawCenteredText(ctx, String(total), 540, 1214, "700 68px Georgia, serif", "#1f3a8a");
-  drawCenteredText(ctx, "RAMANUJAN MAGIC SQUARE · CODETECH", 540, 1272, "700 19px Arial, sans-serif", "#94a3b8");
-  drawCenteredText(ctx, "Lead Developer: Sachin Sheth", 540, 1302, "500 17px Arial, sans-serif", "#64748b");
+  drawCenteredText(ctx, "BIRTHDAY TOTAL", 540, 1138, "700 23px Arial, sans-serif", "#64748b");
+  drawCenteredText(ctx, String(total), 540, 1194, "700 68px Georgia, serif", "#1f3a8a");
+  drawCenteredText(ctx, "RAMANUJAN MAGIC SQUARE · CODETECH", 540, 1252, "700 19px Arial, sans-serif", "#94a3b8");
+  drawCenteredText(ctx, "Lead Developer: Sachin Sheth", 540, 1284, "500 17px Arial, sans-serif", "#64748b");
 
   return canvas;
 }
