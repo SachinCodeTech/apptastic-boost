@@ -88,9 +88,9 @@ async function buildShareCardCanvas(opts: {
   drawCenteredText(ctx, `${name || "Your"} Magic Square`, 540, 275, "500 58px Georgia, serif", "#14213d");
   drawCenteredText(ctx, birthday || "dd-mm-yyyy", 540, 334, "500 28px Arial, sans-serif", "#64748b");
 
-  const gridX = 168;
+  const gridX = 190;
   const gridY = 386;
-  const gridSize = 744;
+  const gridSize = 700;
   const gap = 16;
   const cell = (gridSize - gap * 3) / 4;
   for (let i = 0; i < 4; i++) {
@@ -107,8 +107,8 @@ async function buildShareCardCanvas(opts: {
     }
   }
 
-  drawCenteredText(ctx, "BIRTHDAY TOTAL", 540, 1138, "700 23px Arial, sans-serif", "#64748b");
-  drawCenteredText(ctx, String(total), 540, 1194, "700 68px Georgia, serif", "#1f3a8a");
+  drawCenteredText(ctx, "BIRTHDAY TOTAL", 540, 1122, "700 23px Arial, sans-serif", "#64748b");
+  drawCenteredText(ctx, String(total), 540, 1184, "700 68px Georgia, serif", "#1f3a8a");
   drawCenteredText(ctx, "RAMANUJAN MAGIC SQUARE · CODETECH", 540, 1252, "700 19px Arial, sans-serif", "#94a3b8");
   drawCenteredText(ctx, "Lead Developer: Sachin Sheth", 540, 1284, "500 17px Arial, sans-serif", "#64748b");
 
@@ -261,7 +261,7 @@ async function createShareFiles(opts: {
   const image = makeShareFile([imageBlob], `${safeFileName(opts.name)}_MagicSquare.png`, "image/png");
 
   const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [canvas.width, canvas.height] });
-  pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, canvas.width, canvas.height);
+  pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, canvas.width, canvas.height, undefined, "FAST");
   const pdfBlob: Blob = pdf.output("blob");
   const pdfFile = makeShareFile([pdfBlob], `${safeFileName(opts.name)}_MagicSquare_${opts.birthday || "card"}.pdf`, "application/pdf");
 
