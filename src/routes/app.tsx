@@ -161,8 +161,6 @@ function downloadBlob(blob: Blob, fileName: string) {
   return "downloaded" as const;
 }
 
-type ShareAttemptResult = "shared" | "fallback-shared" | "downloaded" | "cancelled";
-
 function getShareNavigator() {
   return typeof navigator !== "undefined" ? (navigator as Navigator & {
     canShare?: (data: ShareData) => boolean;
@@ -170,75 +168,47 @@ function getShareNavigator() {
   }) : null;
 }
 
-function canNativeShareFile(file: File, shareData: { title: string; text: string }) {
+function canNativeShareFile(file: File) {
   const nav = getShareNavigator();
-  if (!nav?.share) return false;
+  if (!nav?.share || typeof nav.canShare !== "function") return false;
   if (typeof window !== "undefined" && window.isSecureContext === false) return false;
-  if (typeof nav.canShare !== "function") return true;
 
   try {
-    return nav.canShare({ ...shareData, files: [file] });
+    return nav.canShare({ files: [file] });
   } catch {
-    try {
-      return nav.canShare({ files: [file] });
-    } catch {
-      return false;
-    }
+    return false;
   }
 }
 
-async function tryNativeShareFile(file: File, shareData: { title: string; text: string }) {
-  const nav = typeof navigator !== "undefined" ? (navigator as Navigator & {
-    canShare?: (data: ShareData) => boolean;
-    share?: (data: ShareData) => Promise<void>;
-  }) : null;
-
-  if (!nav?.share || (typeof window !== "undefined" && window.isSecureContext === false)) return "unsupported" as const;
-
-  // Some Safari versions incorrectly report false for PDF in canShare(), but
-  // accept the same File in share(). Try the real operation and handle failure.
-  if (typeof nav.canShare === "function" && file.type !== "application/pdf") {
-    try {
-      if (!nav.canShare({ files: [file] })) return "unsupported" as const;
-    } catch {
-      return "unsupported" as const;
-    }
-  }
-
-  try {
-    await nav.share({ ...shareData, files: [file] });
-    return "shared" as const;
-  } catch (err) {
-    const name = err instanceof DOMException ? err.name : (err as { name?: string })?.name;
-    if (name === "AbortError") return "cancelled" as const;
-    return "failed" as const;
-  }
-}
-
-async function shareOrDownload(
+function shareOrDownload(
   file: File,
   shareData: { title: string; text: string },
-  opts: { fallbackShareFile?: File } = {},
-): Promise<ShareAttemptResult> {
-  const primaryResult = await tryNativeShareFile(file, shareData);
-  if (primaryResult === "shared" || primaryResult === "cancelled") {
-    return primaryResult;
+  callbacks: { onShared: () => void; onCancelled: () => void; onDownloaded: () => void },
+) {
+  const nav = getShareNavigator();
+  if (!nav?.share || !canNativeShareFile(file)) {
+    downloadBlob(file, file.name);
+    callbacks.onDownloaded();
+    return;
   }
 
-  if (opts.fallbackShareFile && opts.fallbackShareFile !== file) {
-    const fallbackResult = await tryNativeShareFile(opts.fallbackShareFile, {
-      ...shareData,
-      text: `${shareData.text} PDF sharing is not available on this device, so this image card is shared instead.`,
+  // This call intentionally happens synchronously in the click event. Awaiting
+  // any file-generation promise first loses transient activation in Safari.
+  try {
+    const shareResult = nav.share({ ...shareData, files: [file] });
+    void shareResult.then(callbacks.onShared).catch((err: unknown) => {
+      const errorName = err instanceof DOMException ? err.name : (err as { name?: string })?.name;
+      if (errorName === "AbortError") {
+        callbacks.onCancelled();
+        return;
+      }
+      downloadBlob(file, file.name);
+      callbacks.onDownloaded();
     });
-    if (fallbackResult === "shared") {
-      return "fallback-shared";
-    }
-    if (fallbackResult === "cancelled") {
-      return "cancelled";
-    }
+  } catch {
+    downloadBlob(file, file.name);
+    callbacks.onDownloaded();
   }
-
-  return downloadBlob(file, file.name);
 }
 
 type PreparedShareFiles = {
@@ -309,10 +279,11 @@ function AppPage() {
   const [exportMessage, setExportMessage] = useState("");
   const [isExporting, setIsExporting] = useState(false);
   const [exportingKind, setExportingKind] = useState<"pdf" | "image" | null>(null);
+  const [shareFilesReady, setShareFilesReady] = useState(false);
   const cycleIdx = useRef(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const exportRef = useRef<HTMLDivElement>(null);
-  const preparedFilesRef = useRef<Promise<PreparedShareFiles> | null>(null);
+  const preparedFilesRef = useRef<PreparedShareFiles | null>(null);
 
   // Birthday input formatting
   function onBirthdayChange(v: string) {
@@ -385,14 +356,24 @@ function AppPage() {
   useEffect(() => {
     if (!square || total === null) {
       preparedFilesRef.current = null;
+      setShareFilesReady(false);
       return;
     }
 
-    const preparation = createShareFiles({ name, birthday, square, total });
-    preparedFilesRef.current = preparation;
-    preparation.catch(() => {
-      if (preparedFilesRef.current === preparation) preparedFilesRef.current = null;
+    let active = true;
+    preparedFilesRef.current = null;
+    setShareFilesReady(false);
+    void createShareFiles({ name, birthday, square, total }).then((files) => {
+      if (!active) return;
+      preparedFilesRef.current = files;
+      setShareFilesReady(true);
+    }).catch(() => {
+      if (!active) return;
+      preparedFilesRef.current = null;
+      setShareFilesReady(false);
+      setExportMessage("Could not prepare share cards. Please generate again.");
     });
+    return () => { active = false; };
   }, [name, birthday, square, total]);
 
   function clearAll() {
@@ -400,68 +381,45 @@ function AppPage() {
     setName(""); setBirthday(""); setSquare(null); setTotal(null);
     setVerified([]); setError(""); setPatternLabel(""); setExportMessage("");
     setExportingKind(null);
+    setShareFilesReady(false);
   }
 
-  async function shareAsPdf() {
-    if (!square || total === null) return;
+  function finishExport(message: string) {
+    setExportMessage(message);
+    setIsExporting(false);
+    setExportingKind(null);
+  }
+
+  function shareAsPdf() {
+    if (!square || total === null || !preparedFilesRef.current) return;
+    const file = preparedFilesRef.current.pdf;
     setIsExporting(true);
     setExportingKind("pdf");
-    setExportMessage("Preparing PDF card…");
-    try {
-      const files = await (preparedFilesRef.current ?? createShareFiles({ name, birthday, square, total }));
-      setExportMessage(canNativeShareFile(files.pdf, {
-        title: `${name || "My"} Magic Square`,
-        text: `My personal Ramanujan magic square — total ${total}. Made with Ramanujan Magic Square by CodeTech.`,
-      }) ? "Opening share sheet…" : "Saving PDF card…");
-      const result = await shareOrDownload(files.pdf, {
-        title: `${name || "My"} Magic Square`,
-        text: `My personal Ramanujan magic square — total ${total}. Made with Ramanujan Magic Square by CodeTech.`,
-      }, { fallbackShareFile: files.image });
-      setExportMessage(
-        result === "shared"
-          ? "PDF shared successfully."
-          : result === "fallback-shared"
-          ? "PDF sharing is not available here, so the image card was shared."
-          : result === "cancelled"
-          ? "PDF share cancelled."
-          : "PDF saved. Open it from downloads to share."
-      );
-    } catch {
-      setExportMessage("PDF export failed. Please try Share Image instead.");
-    } finally {
-      setIsExporting(false);
-      setExportingKind(null);
-    }
+    setExportMessage(canNativeShareFile(file) ? "Opening PDF share sheet…" : "Saving PDF card…");
+    shareOrDownload(file, {
+      title: `${name || "My"} Magic Square`,
+      text: `My personal Ramanujan magic square — total ${total}. Made with Ramanujan Magic Square by CodeTech.`,
+    }, {
+      onShared: () => finishExport("PDF shared successfully."),
+      onCancelled: () => finishExport("PDF share cancelled."),
+      onDownloaded: () => finishExport("PDF saved. Open it from downloads to share."),
+    });
   }
 
-  async function shareAsImage() {
-    if (!square || total === null) return;
+  function shareAsImage() {
+    if (!square || total === null || !preparedFilesRef.current) return;
+    const file = preparedFilesRef.current.image;
     setIsExporting(true);
     setExportingKind("image");
-    setExportMessage("Preparing image card…");
-    try {
-      const files = await (preparedFilesRef.current ?? createShareFiles({ name, birthday, square, total }));
-      setExportMessage(canNativeShareFile(files.image, {
-        title: `${name || "My"} Magic Square`,
-        text: `My Ramanujan magic square — total ${total}.`,
-      }) ? "Opening share sheet…" : "Saving image card…");
-      const result = await shareOrDownload(files.image, {
-        title: `${name || "My"} Magic Square`,
-        text: `My Ramanujan magic square — total ${total}.`,
-      });
-      setExportMessage(
-        result === "shared"
-          ? "Image shared successfully."
-          : result === "cancelled"
-          ? "Image share cancelled."
-          : "Image saved. Open it from downloads to share."
-      );
-    } catch {
-      setExportMessage("Image export failed. Please try again.");
-    } finally {
-      setIsExporting(false);
-      setExportingKind(null);
-    }
+    setExportMessage(canNativeShareFile(file) ? "Opening image share sheet…" : "Saving image card…");
+    shareOrDownload(file, {
+      title: `${name || "My"} Magic Square`,
+      text: `My Ramanujan magic square — total ${total}.`,
+    }, {
+      onShared: () => finishExport("Image shared successfully."),
+      onCancelled: () => finishExport("Image share cancelled."),
+      onDownloaded: () => finishExport("Image saved. Open it from downloads to share."),
+    });
   }
 
   const hasSquare = !!square;
@@ -512,12 +470,12 @@ function AppPage() {
             className="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-medium hover:bg-secondary disabled:opacity-40">
             {isCycling ? "Stop Cycling" : "Cycle Patterns"}
           </button>
-          <button onClick={shareAsPdf} disabled={!hasSquare || isExporting}
+          <button onClick={shareAsPdf} disabled={!hasSquare || isExporting || !shareFilesReady}
             className="inline-flex h-11 items-center justify-center rounded-lg px-4 text-sm font-semibold text-primary-foreground disabled:opacity-40"
             style={{ background: "var(--gradient-accent)" }}>
             {exportingKind === "pdf" ? "Preparing..." : "Share PDF"}
           </button>
-          <button onClick={shareAsImage} disabled={!hasSquare || isExporting}
+          <button onClick={shareAsImage} disabled={!hasSquare || isExporting || !shareFilesReady}
             className="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-medium hover:bg-secondary disabled:opacity-40">
             {exportingKind === "image" ? "Preparing..." : "Share Image"}
           </button>
