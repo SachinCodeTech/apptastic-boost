@@ -170,8 +170,13 @@ function getShareNavigator() {
 
 function canNativeShareFile(file: File) {
   const nav = getShareNavigator();
-  if (!nav?.share || typeof nav.canShare !== "function") return false;
+  if (!nav?.share) return false;
   if (typeof window !== "undefined" && window.isSecureContext === false) return false;
+
+  // Safari versions that support file sharing can incorrectly return false for
+  // PDFs. Attempt the synchronous share and use the download fallback on error.
+  if (file.type === "application/pdf") return true;
+  if (typeof nav.canShare !== "function") return false;
 
   try {
     return nav.canShare({ files: [file] });
