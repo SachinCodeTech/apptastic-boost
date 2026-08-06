@@ -172,10 +172,6 @@ function canNativeShareFile(file: File) {
   const nav = getShareNavigator();
   if (!nav?.share) return false;
   if (typeof window !== "undefined" && window.isSecureContext === false) return false;
-
-  // Safari versions that support file sharing can incorrectly return false for
-  // PDFs. Attempt the synchronous share and use the download fallback on error.
-  if (file.type === "application/pdf") return true;
   if (typeof nav.canShare !== "function") return false;
 
   try {
@@ -189,9 +185,22 @@ function shareOrDownload(
   file: File,
   shareData: { title: string; text: string },
   callbacks: { onShared: () => void; onCancelled: () => void; onDownloaded: () => void },
+  nativeFallback?: { file: File; onShared: () => void },
 ) {
   const nav = getShareNavigator();
-  if (!nav?.share || !canNativeShareFile(file)) {
+  if (!nav?.share) {
+    downloadBlob(file, file.name);
+    callbacks.onDownloaded();
+    return;
+  }
+
+  const nativeFile = canNativeShareFile(file)
+    ? file
+    : nativeFallback && canNativeShareFile(nativeFallback.file)
+      ? nativeFallback.file
+      : null;
+
+  if (!nativeFile) {
     downloadBlob(file, file.name);
     callbacks.onDownloaded();
     return;
@@ -200,8 +209,10 @@ function shareOrDownload(
   // This call intentionally happens synchronously in the click event. Awaiting
   // any file-generation promise first loses transient activation in Safari.
   try {
-    const shareResult = nav.share({ ...shareData, files: [file] });
-    void shareResult.then(callbacks.onShared).catch((err: unknown) => {
+    const shareResult = nav.share({ ...shareData, files: [nativeFile] });
+    void shareResult.then(
+      nativeFile === file ? callbacks.onShared : nativeFallback?.onShared ?? callbacks.onShared,
+    ).catch((err: unknown) => {
       const errorName = err instanceof DOMException ? err.name : (err as { name?: string })?.name;
       if (errorName === "AbortError") {
         callbacks.onCancelled();
@@ -397,10 +408,18 @@ function AppPage() {
 
   function shareAsPdf() {
     if (!square || total === null || !preparedFilesRef.current) return;
-    const file = preparedFilesRef.current.pdf;
+    const { pdf: file, image } = preparedFilesRef.current;
+    const willSharePdf = canNativeShareFile(file);
+    const willShareImage = !willSharePdf && canNativeShareFile(image);
     setIsExporting(true);
     setExportingKind("pdf");
-    setExportMessage(canNativeShareFile(file) ? "Opening PDF share sheet…" : "Saving PDF card…");
+    setExportMessage(
+      willSharePdf
+        ? "Opening PDF share sheet…"
+        : willShareImage
+          ? "PDF sharing is unavailable here. Opening the image share sheet instead…"
+          : "Saving PDF card…",
+    );
     shareOrDownload(file, {
       title: `${name || "My"} Magic Square`,
       text: `My personal Ramanujan magic square — total ${total}. Made with Ramanujan Magic Square by CodeTech.`,
@@ -408,6 +427,9 @@ function AppPage() {
       onShared: () => finishExport("PDF shared successfully."),
       onCancelled: () => finishExport("PDF share cancelled."),
       onDownloaded: () => finishExport("PDF saved. Open it from downloads to share."),
+    }, {
+      file: image,
+      onShared: () => finishExport("PDF sharing is unavailable in this browser, so the image card was shared instead."),
     });
   }
 
