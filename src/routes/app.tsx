@@ -161,6 +161,36 @@ function downloadBlob(blob: Blob, fileName: string) {
   return "downloaded" as const;
 }
 
+function isEmbeddedWindow() {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.self !== window.top;
+  } catch {
+    return true;
+  }
+}
+
+function openOrDownloadBlob(blob: Blob, fileName: string) {
+  const isAppleMobile = /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  // iOS ignores `download` for many Blob URLs. The Lovable preview is also an
+  // iframe, where browsers block Web Share. Opening the generated card keeps a
+  // dependable one-tap path to the browser's Share/Save controls in both cases.
+  if (isAppleMobile || isEmbeddedWindow()) {
+    const url = URL.createObjectURL(blob);
+    const opened = window.open(url, "_blank", "noopener,noreferrer");
+    if (opened) {
+      window.setTimeout(() => URL.revokeObjectURL(url), 5 * 60_000);
+      return "opened" as const;
+    }
+    URL.revokeObjectURL(url);
+  }
+
+  downloadBlob(blob, fileName);
+  return "downloaded" as const;
+}
+
 function getShareNavigator() {
   return typeof navigator !== "undefined" ? (navigator as Navigator & {
     canShare?: (data: ShareData) => boolean;
@@ -172,7 +202,10 @@ function canNativeShareFile(file: File) {
   const nav = getShareNavigator();
   if (!nav?.share) return false;
   if (typeof window !== "undefined" && window.isSecureContext === false) return false;
-  if (typeof nav.canShare !== "function") return false;
+  if (isEmbeddedWindow()) return false;
+  // Safari versions that implement file sharing do not all implement
+  // navigator.canShare. In that case, navigator.share is the capability check.
+  if (typeof nav.canShare !== "function") return true;
 
   try {
     return nav.canShare({ files: [file] });
@@ -184,13 +217,14 @@ function canNativeShareFile(file: File) {
 function shareOrDownload(
   file: File,
   shareData: { title: string; text: string },
-  callbacks: { onShared: () => void; onCancelled: () => void; onDownloaded: () => void },
+  callbacks: { onShared: () => void; onCancelled: () => void; onDownloaded: () => void; onOpened: () => void },
   nativeFallback?: { file: File; onShared: () => void },
 ) {
   const nav = getShareNavigator();
-  if (!nav?.share) {
-    downloadBlob(file, file.name);
-    callbacks.onDownloaded();
+  if (!nav?.share || isEmbeddedWindow()) {
+    const result = openOrDownloadBlob(file, file.name);
+    if (result === "opened") callbacks.onOpened();
+    else callbacks.onDownloaded();
     return;
   }
 
@@ -201,8 +235,9 @@ function shareOrDownload(
       : null;
 
   if (!nativeFile) {
-    downloadBlob(file, file.name);
-    callbacks.onDownloaded();
+    const result = openOrDownloadBlob(file, file.name);
+    if (result === "opened") callbacks.onOpened();
+    else callbacks.onDownloaded();
     return;
   }
 
@@ -218,12 +253,14 @@ function shareOrDownload(
         callbacks.onCancelled();
         return;
       }
-      downloadBlob(file, file.name);
-      callbacks.onDownloaded();
+      const result = openOrDownloadBlob(file, file.name);
+      if (result === "opened") callbacks.onOpened();
+      else callbacks.onDownloaded();
     });
   } catch {
-    downloadBlob(file, file.name);
-    callbacks.onDownloaded();
+    const result = openOrDownloadBlob(file, file.name);
+    if (result === "opened") callbacks.onOpened();
+    else callbacks.onDownloaded();
   }
 }
 
@@ -427,6 +464,7 @@ function AppPage() {
       onShared: () => finishExport("PDF shared successfully."),
       onCancelled: () => finishExport("PDF share cancelled."),
       onDownloaded: () => finishExport("PDF saved. Open it from downloads to share."),
+      onOpened: () => finishExport("PDF card opened. Use the browser Share button to send it."),
     }, {
       file: image,
       onShared: () => finishExport("PDF sharing is unavailable in this browser, so the image card was shared instead."),
@@ -446,6 +484,7 @@ function AppPage() {
       onShared: () => finishExport("Image shared successfully."),
       onCancelled: () => finishExport("Image share cancelled."),
       onDownloaded: () => finishExport("Image saved. Open it from downloads to share."),
+      onOpened: () => finishExport("Image card opened. Use the browser Share button to send or save it."),
     });
   }
 
