@@ -7,9 +7,9 @@ export const Route = createFileRoute("/about")({
       { name: "description", content: "About the Ramanujan Magic Square app by CodeTech, Lead Developer Sachin Sheth." },
       { property: "og:title", content: "About — Ramanujan Magic Square" },
       { property: "og:description", content: "Learn about the app, the math, and the team behind it." },
-      { property: "og:url", content: "/about" },
+      { property: "og:url", content: "https://apptastic-boost.lovable.app/about" },
     ],
-    links: [{ rel: "canonical", href: "/about" }],
+    links: [{ rel: "canonical", href: "https://apptastic-boost.lovable.app/about" }],
   }),
   component: About,
 });

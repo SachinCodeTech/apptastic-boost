@@ -7,9 +7,9 @@ export const Route = createFileRoute("/terms")({
       { name: "description", content: "Terms of use for the Ramanujan Magic Square app by CodeTech." },
       { property: "og:title", content: "Terms of Use" },
       { property: "og:description", content: "Terms of use for the Ramanujan Magic Square app." },
-      { property: "og:url", content: "/terms" },
+      { property: "og:url", content: "https://apptastic-boost.lovable.app/terms" },
     ],
-    links: [{ rel: "canonical", href: "/terms" }],
+    links: [{ rel: "canonical", href: "https://apptastic-boost.lovable.app/terms" }],
   }),
   component: Terms,
 });

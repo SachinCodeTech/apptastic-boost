@@ -8,9 +8,9 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "A beautiful tribute to Srinivasa Ramanujan. Generate a personal 4×4 magic square from any date of birth. By CodeTech." },
       { property: "og:title", content: "Ramanujan Magic Square" },
       { property: "og:description", content: "Turn your birthday into a magical 4×4 number square." },
-      { property: "og:url", content: "/" },
+      { property: "og:url", content: "https://apptastic-boost.lovable.app/" },
     ],
-    links: [{ rel: "canonical", href: "/" }],
+    links: [{ rel: "canonical", href: "https://apptastic-boost.lovable.app/" }],
   }),
   component: Index,
 });
