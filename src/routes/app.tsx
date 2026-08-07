@@ -8,9 +8,9 @@ export const Route = createFileRoute("/app")({
       { name: "description", content: "Enter your name and birthday to generate a personal Ramanujan 4×4 magic square. Cycle through 21 hidden patterns and share as PDF." },
       { property: "og:title", content: "Generate your Magic Square" },
       { property: "og:description", content: "Personal Ramanujan magic square from your birthday." },
-      { property: "og:url", content: "/app" },
+      { property: "og:url", content: "https://apptastic-boost.lovable.app/app" },
     ],
-    links: [{ rel: "canonical", href: "/app" }],
+    links: [{ rel: "canonical", href: "https://apptastic-boost.lovable.app/app" }],
   }),
   component: AppPage,
 });

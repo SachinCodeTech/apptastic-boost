@@ -24,6 +24,8 @@ export default defineConfig({
         manifest: false,
         workbox: {
           globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest,woff2}"],
+          globIgnores: ["**/screenshot-*.png"],
+          maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
           navigateFallback: "/",
           navigateFallbackDenylist: [/^\/api\//, /^\/~oauth/, /^\/sitemap\.xml$/, /^\/robots\.txt$/],
           cleanupOutdatedCaches: true,

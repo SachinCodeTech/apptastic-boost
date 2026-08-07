@@ -7,9 +7,9 @@ export const Route = createFileRoute("/privacy")({
       { name: "description", content: "Privacy policy for the Ramanujan Magic Square app by CodeTech. We do not collect any personal data." },
       { property: "og:title", content: "Privacy Policy" },
       { property: "og:description", content: "How we handle your data — short answer: we don't collect any." },
-      { property: "og:url", content: "/privacy" },
+      { property: "og:url", content: "https://apptastic-boost.lovable.app/privacy" },
     ],
-    links: [{ rel: "canonical", href: "/privacy" }],
+    links: [{ rel: "canonical", href: "https://apptastic-boost.lovable.app/privacy" }],
   }),
   component: Privacy,
 });
