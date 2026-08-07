@@ -1,21 +1,35 @@
 {
+  "id": "/",
   "name": "Ramanujan Magic Square",
   "short_name": "Magic Square",
-  "description": "Generate a personal Ramanujan 4x4 magic square from your birthday.",
-  "start_url": "/",
+  "description": "Generate a personal Ramanujan 4x4 magic square from your birthday, then share it as a PDF or image card.",
+  "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
   "background_color": "#f7f5ef",
   "theme_color": "#1f3a8a",
-  "orientation": "portrait",
+  "orientation": "any",
   "categories": ["education", "utilities", "lifestyle"],
   "lang": "en",
   "dir": "ltr",
+  "prefer_related_applications": false,
+  "launch_handler": { "client_mode": "navigate-existing" },
   "icons": [
-    { "src": "/favicon.ico", "sizes": "any", "type": "image/x-icon" },
-    { "src": "/app-icon.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/app-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/app-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "/favicon.ico", "sizes": "48x48", "type": "image/x-icon" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ],
+  "screenshots": [
+    { "src": "/screenshot-mobile-home.png", "sizes": "390x844", "type": "image/png", "form_factor": "narrow", "label": "Home screen" },
+    { "src": "/screenshot-mobile-app.png", "sizes": "390x844", "type": "image/png", "form_factor": "narrow", "label": "Generate your square" },
+    { "src": "/screenshot-wide-home.png", "sizes": "1280x800", "type": "image/png", "form_factor": "wide", "label": "Home screen" },
+    { "src": "/screenshot-wide-app.png", "sizes": "1280x800", "type": "image/png", "form_factor": "wide", "label": "Magic square generator" }
+  ],
+  "shortcuts": [
+    { "name": "Generate a square", "short_name": "Generate", "url": "/app", "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "About the math", "short_name": "About", "url": "/about" }
   ]
 }
