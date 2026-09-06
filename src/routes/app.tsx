@@ -65,67 +65,85 @@ async function buildShareCardCanvas(opts: {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Could not create share card.");
 
-  const ink = "#14315c";
-  const sky = "#e8f7ff";
-  const blue = "#2f80ed";
-  const coral = "#ff7a7a";
-  const gold = "#ffd166";
-  const mint = "#75d6b2";
-  const lilac = "#c9b7ff";
+  // App theme palette: cream paper, deep navy, warm gold (matches src/styles.css)
+  const cream = "#f7f5ef";
+  const ink = "#232a45";
+  const inkSoft = "#5c6478";
+  const navy = "#1f3a8a";
+  const navyLight = "#4a63c8";
+  const gold = "#d9a03f";
+  const goldSoft = "#f3e3c0";
+  const writeLine = "#a8cbe8";
 
-  ctx.fillStyle = sky;
+  ctx.fillStyle = cream;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  // Card panel
   drawRoundRect(ctx, 55, 40, 970, 1270, 42);
   ctx.fillStyle = "#ffffff";
   ctx.fill();
-  ctx.strokeStyle = "#b9e2f5";
+  ctx.strokeStyle = "#e6dfc8";
   ctx.lineWidth = 3;
   ctx.stroke();
 
-  drawRoundRect(ctx, 90, 75, 900, 120, 28);
-  ctx.fillStyle = blue;
+  // Header band — navy gradient like the app header button
+  drawRoundRect(ctx, 90, 75, 900, 130, 26);
+  const headerGrad = ctx.createLinearGradient(90, 75, 990, 205);
+  headerGrad.addColorStop(0, navy);
+  headerGrad.addColorStop(1, navyLight);
+  ctx.fillStyle = headerGrad;
   ctx.fill();
-  drawCenteredText(ctx, "RAMANUJAN MAGIC SQUARE", 540, 123, "700 38px Georgia, serif", "#ffffff");
-  drawCenteredText(ctx, "A birthday number card", 540, 165, "500 19px Arial, sans-serif", "#e8f7ff");
+  drawCenteredText(ctx, "Ramanujan Magic Square", 540, 120, "600 42px 'Instrument Serif', Georgia, serif", "#ffffff");
+  drawCenteredText(ctx, "A BIRTHDAY NUMBER CARD", 540, 168, "600 17px Inter, Arial, sans-serif", goldSoft);
 
-  drawCenteredText(ctx, name || "Birthday Star", 540, 252, "600 55px Georgia, serif", ink);
-  drawCenteredText(ctx, `Birth date  ${birthday || "--  --  ----"}`, 540, 312, "600 25px Arial, sans-serif", "#55708f");
+  // Gold divider
+  ctx.fillStyle = gold;
+  drawRoundRect(ctx, 470, 225, 140, 6, 3);
+  ctx.fill();
 
+  drawCenteredText(ctx, name || "Birthday Star", 540, 288, "600 56px 'Instrument Serif', Georgia, serif", ink);
+  drawCenteredText(ctx, `Birth date  ${birthday || "--  --  ----"}`, 540, 348, "600 25px Inter, Arial, sans-serif", inkSoft);
+
+  // Magic square grid — navy cells with gold corner accents
   const gridX = 200;
-  const gridY = 360;
+  const gridY = 395;
   const gridSize = 680;
   const gap = 14;
   const cell = (gridSize - gap * 3) / 4;
-  const cellColors = [gold, coral, mint, lilac];
   for (let i = 0; i < 4; i++) {
     for (let j = 0; j < 4; j++) {
       const x = gridX + j * (cell + gap);
       const y = gridY + i * (cell + gap);
       drawRoundRect(ctx, x, y, cell, cell, 18);
-      ctx.fillStyle = cellColors[(i + j) % cellColors.length];
+      const cellGrad = ctx.createLinearGradient(x, y, x + cell, y + cell);
+      cellGrad.addColorStop(0, navy);
+      cellGrad.addColorStop(1, navyLight);
+      ctx.fillStyle = cellGrad;
       ctx.fill();
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 5;
-      ctx.stroke();
-      drawCenteredText(ctx, String(square[i][j]), x + cell / 2, y + cell / 2, "700 52px Georgia, serif", ink);
+      ctx.strokeStyle = gold;
+      ctx.lineWidth = i === 0 && j === 0 ? 4 : 0;
+      if (i === 0 && j === 0) ctx.stroke();
+      drawCenteredText(ctx, String(square[i][j]), x + cell / 2, y + cell / 2, "600 54px 'Instrument Serif', Georgia, serif", "#ffffff");
     }
   }
 
-  drawCenteredText(ctx, "BIRTHDAY TOTAL", 540, 1078, "700 21px Arial, sans-serif", "#55708f");
-  drawCenteredText(ctx, String(total), 540, 1132, "700 62px Georgia, serif", blue);
+  drawCenteredText(ctx, "BIRTHDAY TOTAL", 540, 1120, "700 20px Inter, Arial, sans-serif", inkSoft);
+  drawCenteredText(ctx, String(total), 540, 1178, "600 66px 'Instrument Serif', Georgia, serif", navy);
 
-  ctx.strokeStyle = "#9bd5ef";
+  // Two light-blue writing lines for a personal message
+  ctx.strokeStyle = writeLine;
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(180, 1190);
-  ctx.lineTo(900, 1190);
-  ctx.moveTo(180, 1230);
-  ctx.lineTo(900, 1230);
+  ctx.moveTo(180, 1228);
+  ctx.lineTo(900, 1228);
+  ctx.moveTo(180, 1262);
+  ctx.lineTo(900, 1262);
   ctx.stroke();
 
-  drawCenteredText(ctx, "CODETECH", 540, 1270, "700 18px Arial, sans-serif", ink);
-  drawCenteredText(ctx, "Lead Developer  ·  Sachin Sheth", 540, 1295, "500 16px Arial, sans-serif", "#55708f");
+  // Footer
+  ctx.fillStyle = gold;
+  ctx.fillRect(90, 1292, 900, 2);
+  drawCenteredText(ctx, "CODETECH  ·  Lead Developer: Sachin Sheth", 540, 1310, "600 17px Inter, Arial, sans-serif", inkSoft);
 
   return canvas;
 }
