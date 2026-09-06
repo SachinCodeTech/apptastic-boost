@@ -142,8 +142,8 @@ async function buildShareCardCanvas(opts: {
 
   // Footer
   ctx.fillStyle = gold;
-  ctx.fillRect(90, 1292, 900, 2);
-  drawCenteredText(ctx, "CODETECH  ·  Lead Developer: Sachin Sheth", 540, 1310, "600 17px Inter, Arial, sans-serif", inkSoft);
+  ctx.fillRect(90, 1282, 900, 2);
+  drawCenteredText(ctx, "CODETECH  ·  Lead Developer: Sachin Sheth", 540, 1302, "600 17px Inter, Arial, sans-serif", inkSoft);
 
   return canvas;
 }
