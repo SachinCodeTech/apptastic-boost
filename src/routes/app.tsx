@@ -65,52 +65,67 @@ async function buildShareCardCanvas(opts: {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Could not create share card.");
 
-  ctx.fillStyle = "#f7f5ef";
+  const ink = "#14315c";
+  const sky = "#e8f7ff";
+  const blue = "#2f80ed";
+  const coral = "#ff7a7a";
+  const gold = "#ffd166";
+  const mint = "#75d6b2";
+  const lilac = "#c9b7ff";
+
+  ctx.fillStyle = sky;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  drawRoundRect(ctx, 70, 70, 940, 1260, 42);
+  drawRoundRect(ctx, 55, 40, 970, 1270, 42);
   ctx.fillStyle = "#ffffff";
   ctx.fill();
-  ctx.strokeStyle = "#e6dfd2";
+  ctx.strokeStyle = "#b9e2f5";
   ctx.lineWidth = 3;
   ctx.stroke();
 
-  drawRoundRect(ctx, 112, 112, 64, 64, 16);
-  ctx.fillStyle = "#0b5cab";
+  drawRoundRect(ctx, 90, 75, 900, 120, 28);
+  ctx.fillStyle = blue;
   ctx.fill();
-  drawCenteredText(ctx, "R", 144, 144, "700 30px Georgia, serif", "#ffffff");
-  ctx.textAlign = "left";
-  ctx.textBaseline = "middle";
-  ctx.font = "500 28px Georgia, serif";
-  ctx.fillStyle = "#14213d";
-  ctx.fillText("Ramanujan Magic Square", 196, 144);
+  drawCenteredText(ctx, "RAMANUJAN MAGIC SQUARE", 540, 123, "700 38px Georgia, serif", "#ffffff");
+  drawCenteredText(ctx, "A birthday number card", 540, 165, "500 19px Arial, sans-serif", "#e8f7ff");
 
-  drawCenteredText(ctx, `${name || "Your"} Magic Square`, 540, 275, "500 58px Georgia, serif", "#14213d");
-  drawCenteredText(ctx, birthday || "dd-mm-yyyy", 540, 334, "500 28px Arial, sans-serif", "#64748b");
+  drawCenteredText(ctx, name || "Birthday Star", 540, 252, "600 55px Georgia, serif", ink);
+  drawCenteredText(ctx, `Birth date  ${birthday || "--  --  ----"}`, 540, 312, "600 25px Arial, sans-serif", "#55708f");
 
-  const gridX = 190;
-  const gridY = 386;
-  const gridSize = 700;
-  const gap = 16;
+  const gridX = 200;
+  const gridY = 360;
+  const gridSize = 680;
+  const gap = 14;
   const cell = (gridSize - gap * 3) / 4;
+  const cellColors = [gold, coral, mint, lilac];
   for (let i = 0; i < 4; i++) {
     for (let j = 0; j < 4; j++) {
       const x = gridX + j * (cell + gap);
       const y = gridY + i * (cell + gap);
-      drawRoundRect(ctx, x, y, cell, cell, 22);
-      ctx.fillStyle = i === 0 ? "#fde68a" : "#f1f5f9";
+      drawRoundRect(ctx, x, y, cell, cell, 18);
+      ctx.fillStyle = cellColors[(i + j) % cellColors.length];
       ctx.fill();
-      ctx.strokeStyle = i === 0 ? "#f59e0b" : "#e2e8f0";
-      ctx.lineWidth = 3;
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 5;
       ctx.stroke();
-      drawCenteredText(ctx, String(square[i][j]), x + cell / 2, y + cell / 2, "600 54px Georgia, serif", "#0f172a");
+      drawCenteredText(ctx, String(square[i][j]), x + cell / 2, y + cell / 2, "700 52px Georgia, serif", ink);
     }
   }
 
-  drawCenteredText(ctx, "BIRTHDAY TOTAL", 540, 1122, "700 23px Arial, sans-serif", "#64748b");
-  drawCenteredText(ctx, String(total), 540, 1184, "700 68px Georgia, serif", "#1f3a8a");
-  drawCenteredText(ctx, "RAMANUJAN MAGIC SQUARE · CODETECH", 540, 1252, "700 19px Arial, sans-serif", "#94a3b8");
-  drawCenteredText(ctx, "Lead Developer: Sachin Sheth", 540, 1284, "500 17px Arial, sans-serif", "#64748b");
+  drawCenteredText(ctx, "BIRTHDAY TOTAL", 540, 1078, "700 21px Arial, sans-serif", "#55708f");
+  drawCenteredText(ctx, String(total), 540, 1132, "700 62px Georgia, serif", blue);
+
+  ctx.strokeStyle = "#9bd5ef";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(180, 1190);
+  ctx.lineTo(900, 1190);
+  ctx.moveTo(180, 1230);
+  ctx.lineTo(900, 1230);
+  ctx.stroke();
+
+  drawCenteredText(ctx, "CODETECH", 540, 1270, "700 18px Arial, sans-serif", ink);
+  drawCenteredText(ctx, "Lead Developer  ·  Sachin Sheth", 540, 1295, "500 16px Arial, sans-serif", "#55708f");
 
   return canvas;
 }
@@ -557,35 +572,37 @@ function AppPage() {
       </div>
 
       {/* The square (exportable region) */}
-      <div ref={exportRef} className="mt-6 overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)] sm:mt-8 sm:p-8">
-        <div className="text-center">
-          <p className="font-display text-xl sm:text-2xl">{name || "Your"} Magic Square</p>
-          <p className="text-xs text-muted-foreground sm:text-sm">{birthday || "dd-mm-yyyy"}</p>
-        </div>
-        <div className="mx-auto mt-5 grid aspect-square w-full max-w-[22rem] grid-cols-4 gap-1.5 sm:mt-6 sm:max-w-sm">
+      <div ref={exportRef} className="mt-6 overflow-hidden rounded-2xl border border-border bg-secondary p-2 shadow-[var(--shadow-card)] sm:mt-8 sm:p-3">
+        <div className="overflow-hidden rounded-xl bg-card text-center">
+          <header className="bg-primary px-3 py-4 text-primary-foreground sm:py-5">
+            <p className="font-display text-xl font-semibold uppercase sm:text-2xl">Ramanujan Magic Square</p>
+            <p className="mt-0.5 text-[10px] font-medium uppercase text-primary-foreground/80 sm:text-xs">A birthday number card</p>
+          </header>
+
+          <div className="px-3 pb-5 pt-5 sm:px-8 sm:pb-7 sm:pt-7">
+            <p className="font-display text-3xl font-semibold text-foreground sm:text-4xl">{name || "Birthday Star"}</p>
+            <p className="mt-1.5 text-xs font-semibold text-muted-foreground sm:text-sm">Birth date&nbsp;&nbsp;{birthday || "-- -- ----"}</p>
+
+        <div className="mx-auto mt-5 grid aspect-square w-full max-w-[22rem] grid-cols-4 gap-1.5 sm:mt-6 sm:max-w-sm sm:gap-2">
           {Array.from({ length: 4 }).flatMap((_, i) =>
             Array.from({ length: 4 }).map((_, j) => {
               const key = `${i}-${j}`;
               const value = square ? square[i][j] : null;
-              const isFirstRow = i === 0 && hasSquare;
               const isHi = highlight.has(key);
+              const colorClasses = [
+                "bg-accent text-accent-foreground",
+                "bg-destructive/70 text-foreground",
+                "bg-chart-2/70 text-foreground",
+                "bg-chart-4/70 text-foreground",
+              ];
               return (
                 <div
                   key={key}
                   className={
-                    "flex items-center justify-center rounded-lg font-display text-lg transition-all duration-300 sm:text-2xl " +
+                    "flex items-center justify-center rounded-lg border-2 border-card font-display text-lg font-semibold transition-all duration-300 sm:text-2xl " +
                     (isHi
-                      ? "scale-105 text-foreground shadow-md"
-                      : isFirstRow
-                      ? "text-foreground"
-                      : "bg-secondary text-foreground")
-                  }
-                  style={
-                    isHi
-                      ? { background: "var(--gradient-accent)" }
-                      : isFirstRow
-                      ? { background: "oklch(0.92 0.06 80)", border: "1px solid oklch(0.78 0.14 70)" }
-                      : undefined
+                      ? "scale-105 bg-primary text-primary-foreground shadow-md"
+                      : colorClasses[(i + j) % colorClasses.length])
                   }
                 >
                   {value ?? "–"}
@@ -597,11 +614,22 @@ function AppPage() {
         {total !== null && (
           <div className="mt-5 flex flex-col items-center gap-1 text-center">
             <p className="text-xs uppercase tracking-wider text-muted-foreground sm:text-sm">Birthday Total</p>
-            <p className="font-display text-3xl sm:text-4xl">{total}</p>
+            <p className="font-display text-4xl font-semibold text-primary sm:text-5xl">{total}</p>
             {patternLabel && <p className="mt-1 text-xs font-medium text-accent-foreground">{patternLabel}</p>}
-            <p className="mt-3 text-[10px] uppercase tracking-widest text-muted-foreground/70">Ramanujan Magic Square · CodeTech</p>
           </div>
         )}
+
+            <div className="mx-auto mt-5 w-[88%] space-y-5 py-1" aria-label="Two blank message lines">
+              <div className="border-b border-chart-2/60" />
+              <div className="border-b border-chart-2/60" />
+            </div>
+          </div>
+
+          <footer className="border-t border-border bg-muted px-3 py-3 text-center">
+            <p className="text-[10px] font-bold uppercase text-foreground sm:text-xs">CodeTech</p>
+            <p className="mt-0.5 text-[9px] text-muted-foreground sm:text-[10px]">Lead Developer · Sachin Sheth</p>
+          </footer>
+        </div>
       </div>
 
       {/* Info modal */}
