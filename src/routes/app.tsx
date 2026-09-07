@@ -592,13 +592,14 @@ function AppPage() {
       {/* The square (exportable region) */}
       <div ref={exportRef} className="mt-6 overflow-hidden rounded-2xl border border-border bg-secondary p-2 shadow-[var(--shadow-card)] sm:mt-8 sm:p-3">
         <div className="overflow-hidden rounded-xl bg-card text-center">
-          <header className="bg-primary px-3 py-4 text-primary-foreground sm:py-5">
-            <p className="font-display text-xl font-semibold uppercase sm:text-2xl">Ramanujan Magic Square</p>
-            <p className="mt-0.5 text-[10px] font-medium uppercase text-primary-foreground/80 sm:text-xs">A birthday number card</p>
+          <header className="px-3 py-4 text-primary-foreground sm:py-5" style={{ background: "var(--gradient-hero)" }}>
+            <p className="font-display text-xl sm:text-2xl">Ramanujan Magic Square</p>
+            <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-accent sm:text-xs">A birthday number card</p>
           </header>
 
           <div className="px-3 pb-5 pt-5 sm:px-8 sm:pb-7 sm:pt-7">
-            <p className="font-display text-3xl font-semibold text-foreground sm:text-4xl">{name || "Birthday Star"}</p>
+            <div className="mx-auto h-1 w-16 rounded-full bg-accent" />
+            <p className="mt-4 font-display text-3xl text-foreground sm:text-4xl">{name || "Birthday Star"}</p>
             <p className="mt-1.5 text-xs font-semibold text-muted-foreground sm:text-sm">Birth date&nbsp;&nbsp;{birthday || "-- -- ----"}</p>
 
         <div className="mx-auto mt-5 grid aspect-square w-full max-w-[22rem] grid-cols-4 gap-1.5 sm:mt-6 sm:max-w-sm sm:gap-2">
@@ -607,20 +608,13 @@ function AppPage() {
               const key = `${i}-${j}`;
               const value = square ? square[i][j] : null;
               const isHi = highlight.has(key);
-              const colorClasses = [
-                "bg-accent text-accent-foreground",
-                "bg-destructive/70 text-foreground",
-                "bg-chart-2/70 text-foreground",
-                "bg-chart-4/70 text-foreground",
-              ];
               return (
                 <div
                   key={key}
+                  style={isHi ? undefined : { background: "var(--gradient-hero)" }}
                   className={
-                    "flex items-center justify-center rounded-lg border-2 border-card font-display text-lg font-semibold transition-all duration-300 sm:text-2xl " +
-                    (isHi
-                      ? "scale-105 bg-primary text-primary-foreground shadow-md"
-                      : colorClasses[(i + j) % colorClasses.length])
+                    "flex items-center justify-center rounded-lg font-display text-lg text-primary-foreground shadow-sm transition-all duration-300 sm:text-2xl " +
+                    (isHi ? "scale-105 bg-accent text-accent-foreground shadow-md ring-2 ring-accent" : "")
                   }
                 >
                   {value ?? "–"}
@@ -632,23 +626,24 @@ function AppPage() {
         {total !== null && (
           <div className="mt-5 flex flex-col items-center gap-1 text-center">
             <p className="text-xs uppercase tracking-wider text-muted-foreground sm:text-sm">Birthday Total</p>
-            <p className="font-display text-4xl font-semibold text-primary sm:text-5xl">{total}</p>
-            {patternLabel && <p className="mt-1 text-xs font-medium text-accent-foreground">{patternLabel}</p>}
+            <p className="font-display text-4xl text-primary sm:text-5xl">{total}</p>
+            {patternLabel && <p className="mt-1 text-xs font-medium text-muted-foreground">{patternLabel}</p>}
           </div>
         )}
 
             <div className="mx-auto mt-5 w-[88%] space-y-5 py-1" aria-label="Two blank message lines">
-              <div className="border-b border-chart-2/60" />
-              <div className="border-b border-chart-2/60" />
+              <div className="border-b" style={{ borderColor: "#a8cbe8" }} />
+              <div className="border-b" style={{ borderColor: "#a8cbe8" }} />
             </div>
           </div>
 
-          <footer className="border-t border-border bg-muted px-3 py-3 text-center">
-            <p className="text-[10px] font-bold uppercase text-foreground sm:text-xs">CodeTech</p>
+          <footer className="border-t-2 border-accent bg-secondary px-3 py-3 text-center">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-foreground sm:text-xs">CodeTech</p>
             <p className="mt-0.5 text-[9px] text-muted-foreground sm:text-[10px]">Lead Developer · Sachin Sheth</p>
           </footer>
         </div>
       </div>
+
 
       {/* Info modal */}
       {showInfo && (
