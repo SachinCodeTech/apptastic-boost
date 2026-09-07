@@ -84,7 +84,7 @@
   --input: oklch(0.90 0.02 80);
   --ring: oklch(0.55 0.15 255);
   --gradient-hero: linear-gradient(135deg, oklch(0.32 0.10 255), oklch(0.55 0.18 255));
-  --gradient-accent: linear-gradient(135deg, oklch(0.72 0.16 70), oklch(0.62 0.20 40));
+  --gradient-accent: linear-gradient(135deg, oklch(0.82 0.10 88), oklch(0.72 0.12 78));
   --shadow-elegant: 0 20px 50px -20px oklch(0.32 0.10 255 / 0.35);
   --shadow-card: 0 4px 24px -8px oklch(0.20 0.04 260 / 0.12);
   --font-display: "Instrument Serif", ui-serif, Georgia, serif;
