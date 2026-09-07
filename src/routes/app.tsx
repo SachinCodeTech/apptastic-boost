@@ -570,10 +570,10 @@ function AppPage() {
             {isCycling ? "Stop Cycling" : "Cycle Patterns"}
           </button>
           <button onClick={shareAsPdf} disabled={!hasSquare || isExporting || !shareFilesReady}
-            className="inline-flex h-11 items-center justify-center rounded-lg px-4 text-sm font-semibold text-primary-foreground disabled:opacity-40"
-            style={{ background: "var(--gradient-accent)" }}>
+            className="inline-flex h-11 items-center justify-center rounded-lg border-2 border-accent bg-accent/20 px-4 text-sm font-semibold text-foreground hover:bg-accent/30 disabled:opacity-40">
             {exportingKind === "pdf" ? "Preparing..." : "Share PDF"}
           </button>
+
           <button onClick={shareAsImage} disabled={!hasSquare || isExporting || !shareFilesReady}
             className="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-medium hover:bg-secondary disabled:opacity-40">
             {exportingKind === "image" ? "Preparing..." : "Share Image"}
