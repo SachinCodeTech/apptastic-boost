@@ -71,7 +71,7 @@ async function buildShareCardCanvas(opts: {
   const inkSoft = "#5c6478";
   const navy = "#1f3a8a";
   const navyLight = "#4a63c8";
-  const gold = "#d9a03f";
+  const gold = "#d8ab52";
   const goldSoft = "#f3e3c0";
   const writeLine = "#a8cbe8";
 
