@@ -556,7 +556,7 @@ function AppPage() {
         </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}
-        {showSuccess && <p className="text-sm font-medium" style={{ color: "oklch(0.55 0.18 150)" }}>Magic Square Generated!</p>}
+        {showSuccess && <p className="text-sm font-medium text-primary">Magic Square Generated!</p>}
         {exportMessage && <p className="text-sm font-medium text-muted-foreground">{exportMessage}</p>}
 
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
