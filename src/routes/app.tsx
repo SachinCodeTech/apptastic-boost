@@ -71,7 +71,7 @@ async function buildShareCardCanvas(opts: {
   const inkSoft = "#5c6478";
   const navy = "#1f3a8a";
   const navyLight = "#4a63c8";
-  const gold = "#d9a03f";
+  const gold = "#d8ab52";
   const goldSoft = "#f3e3c0";
   const writeLine = "#a8cbe8";
 
@@ -556,7 +556,7 @@ function AppPage() {
         </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}
-        {showSuccess && <p className="text-sm font-medium" style={{ color: "oklch(0.55 0.18 150)" }}>Magic Square Generated!</p>}
+        {showSuccess && <p className="text-sm font-medium text-primary">Magic Square Generated!</p>}
         {exportMessage && <p className="text-sm font-medium text-muted-foreground">{exportMessage}</p>}
 
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
@@ -570,10 +570,10 @@ function AppPage() {
             {isCycling ? "Stop Cycling" : "Cycle Patterns"}
           </button>
           <button onClick={shareAsPdf} disabled={!hasSquare || isExporting || !shareFilesReady}
-            className="inline-flex h-11 items-center justify-center rounded-lg px-4 text-sm font-semibold text-primary-foreground disabled:opacity-40"
-            style={{ background: "var(--gradient-accent)" }}>
+            className="inline-flex h-11 items-center justify-center rounded-lg border-2 border-accent bg-accent/20 px-4 text-sm font-semibold text-foreground hover:bg-accent/30 disabled:opacity-40">
             {exportingKind === "pdf" ? "Preparing..." : "Share PDF"}
           </button>
+
           <button onClick={shareAsImage} disabled={!hasSquare || isExporting || !shareFilesReady}
             className="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-medium hover:bg-secondary disabled:opacity-40">
             {exportingKind === "image" ? "Preparing..." : "Share Image"}
