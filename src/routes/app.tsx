@@ -65,85 +65,52 @@ async function buildShareCardCanvas(opts: {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Could not create share card.");
 
-  // App theme palette: cream paper, deep navy, warm gold (matches src/styles.css)
-  const cream = "#f7f5ef";
-  const ink = "#232a45";
-  const inkSoft = "#5c6478";
-  const navy = "#1f3a8a";
-  const navyLight = "#4a63c8";
-  const gold = "#d8ab52";
-  const goldSoft = "#f3e3c0";
-  const writeLine = "#a8cbe8";
-
-  ctx.fillStyle = cream;
+  ctx.fillStyle = "#f7f5ef";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Card panel
-  drawRoundRect(ctx, 55, 40, 970, 1270, 42);
+  drawRoundRect(ctx, 70, 70, 940, 1260, 42);
   ctx.fillStyle = "#ffffff";
   ctx.fill();
-  ctx.strokeStyle = "#e6dfc8";
+  ctx.strokeStyle = "#e6dfd2";
   ctx.lineWidth = 3;
   ctx.stroke();
 
-  // Header band — navy gradient like the app header button
-  drawRoundRect(ctx, 90, 75, 900, 130, 26);
-  const headerGrad = ctx.createLinearGradient(90, 75, 990, 205);
-  headerGrad.addColorStop(0, navy);
-  headerGrad.addColorStop(1, navyLight);
-  ctx.fillStyle = headerGrad;
+  drawRoundRect(ctx, 112, 112, 64, 64, 16);
+  ctx.fillStyle = "#0b5cab";
   ctx.fill();
-  drawCenteredText(ctx, "Ramanujan Magic Square", 540, 120, "600 42px 'Instrument Serif', Georgia, serif", "#ffffff");
-  drawCenteredText(ctx, "A BIRTHDAY NUMBER CARD", 540, 168, "600 17px Inter, Arial, sans-serif", goldSoft);
+  drawCenteredText(ctx, "R", 144, 144, "700 30px Georgia, serif", "#ffffff");
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  ctx.font = "500 28px Georgia, serif";
+  ctx.fillStyle = "#14213d";
+  ctx.fillText("Ramanujan Magic Square", 196, 144);
 
-  // Gold divider
-  ctx.fillStyle = gold;
-  drawRoundRect(ctx, 470, 225, 140, 6, 3);
-  ctx.fill();
+  drawCenteredText(ctx, `${name || "Your"} Magic Square`, 540, 275, "500 58px Georgia, serif", "#14213d");
+  drawCenteredText(ctx, birthday || "dd-mm-yyyy", 540, 334, "500 28px Arial, sans-serif", "#64748b");
 
-  drawCenteredText(ctx, name || "Birthday Star", 540, 288, "600 56px 'Instrument Serif', Georgia, serif", ink);
-  drawCenteredText(ctx, `Birth date  ${birthday || "--  --  ----"}`, 540, 348, "600 25px Inter, Arial, sans-serif", inkSoft);
-
-  // Magic square grid — navy cells with gold corner accents
-  const gridX = 200;
-  const gridY = 395;
-  const gridSize = 680;
-  const gap = 14;
+  const gridX = 190;
+  const gridY = 386;
+  const gridSize = 700;
+  const gap = 16;
   const cell = (gridSize - gap * 3) / 4;
   for (let i = 0; i < 4; i++) {
     for (let j = 0; j < 4; j++) {
       const x = gridX + j * (cell + gap);
       const y = gridY + i * (cell + gap);
-      drawRoundRect(ctx, x, y, cell, cell, 18);
-      const cellGrad = ctx.createLinearGradient(x, y, x + cell, y + cell);
-      cellGrad.addColorStop(0, navy);
-      cellGrad.addColorStop(1, navyLight);
-      ctx.fillStyle = cellGrad;
+      drawRoundRect(ctx, x, y, cell, cell, 22);
+      ctx.fillStyle = i === 0 ? "#fde68a" : "#f1f5f9";
       ctx.fill();
-      ctx.strokeStyle = gold;
-      ctx.lineWidth = i === 0 && j === 0 ? 4 : 0;
-      if (i === 0 && j === 0) ctx.stroke();
-      drawCenteredText(ctx, String(square[i][j]), x + cell / 2, y + cell / 2, "600 54px 'Instrument Serif', Georgia, serif", "#ffffff");
+      ctx.strokeStyle = i === 0 ? "#f59e0b" : "#e2e8f0";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      drawCenteredText(ctx, String(square[i][j]), x + cell / 2, y + cell / 2, "600 54px Georgia, serif", "#0f172a");
     }
   }
 
-  drawCenteredText(ctx, "BIRTHDAY TOTAL", 540, 1120, "700 20px Inter, Arial, sans-serif", inkSoft);
-  drawCenteredText(ctx, String(total), 540, 1178, "600 66px 'Instrument Serif', Georgia, serif", navy);
-
-  // Two light-blue writing lines for a personal message
-  ctx.strokeStyle = writeLine;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(180, 1228);
-  ctx.lineTo(900, 1228);
-  ctx.moveTo(180, 1262);
-  ctx.lineTo(900, 1262);
-  ctx.stroke();
-
-  // Footer
-  ctx.fillStyle = gold;
-  ctx.fillRect(90, 1276, 900, 2);
-  drawCenteredText(ctx, "CODETECH  ·  Lead Developer: Sachin Sheth", 540, 1296, "600 17px Inter, Arial, sans-serif", inkSoft);
+  drawCenteredText(ctx, "BIRTHDAY TOTAL", 540, 1122, "700 23px Arial, sans-serif", "#64748b");
+  drawCenteredText(ctx, String(total), 540, 1184, "700 68px Georgia, serif", "#1f3a8a");
+  drawCenteredText(ctx, "RAMANUJAN MAGIC SQUARE · CODETECH", 540, 1252, "700 19px Arial, sans-serif", "#94a3b8");
+  drawCenteredText(ctx, "Lead Developer: Sachin Sheth", 540, 1284, "500 17px Arial, sans-serif", "#64748b");
 
   return canvas;
 }
@@ -556,7 +523,7 @@ function AppPage() {
         </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}
-        {showSuccess && <p className="text-sm font-medium text-primary">Magic Square Generated!</p>}
+        {showSuccess && <p className="text-sm font-medium" style={{ color: "oklch(0.55 0.18 150)" }}>Magic Square Generated!</p>}
         {exportMessage && <p className="text-sm font-medium text-muted-foreground">{exportMessage}</p>}
 
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
@@ -570,10 +537,10 @@ function AppPage() {
             {isCycling ? "Stop Cycling" : "Cycle Patterns"}
           </button>
           <button onClick={shareAsPdf} disabled={!hasSquare || isExporting || !shareFilesReady}
-            className="inline-flex h-11 items-center justify-center rounded-lg border-2 border-accent bg-accent/20 px-4 text-sm font-semibold text-foreground hover:bg-accent/30 disabled:opacity-40">
+            className="inline-flex h-11 items-center justify-center rounded-lg px-4 text-sm font-semibold text-primary-foreground disabled:opacity-40"
+            style={{ background: "var(--gradient-accent)" }}>
             {exportingKind === "pdf" ? "Preparing..." : "Share PDF"}
           </button>
-
           <button onClick={shareAsImage} disabled={!hasSquare || isExporting || !shareFilesReady}
             className="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-medium hover:bg-secondary disabled:opacity-40">
             {exportingKind === "image" ? "Preparing..." : "Share Image"}
@@ -590,31 +557,35 @@ function AppPage() {
       </div>
 
       {/* The square (exportable region) */}
-      <div ref={exportRef} className="mt-6 overflow-hidden rounded-2xl border border-border bg-secondary p-2 shadow-[var(--shadow-card)] sm:mt-8 sm:p-3">
-        <div className="overflow-hidden rounded-xl bg-card text-center">
-          <header className="px-3 py-4 text-primary-foreground sm:py-5" style={{ background: "var(--gradient-hero)" }}>
-            <p className="font-display text-xl sm:text-2xl">Ramanujan Magic Square</p>
-            <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-accent sm:text-xs">A birthday number card</p>
-          </header>
-
-          <div className="px-3 pb-5 pt-5 sm:px-8 sm:pb-7 sm:pt-7">
-            <div className="mx-auto h-1 w-16 rounded-full bg-accent" />
-            <p className="mt-4 font-display text-3xl text-foreground sm:text-4xl">{name || "Birthday Star"}</p>
-            <p className="mt-1.5 text-xs font-semibold text-muted-foreground sm:text-sm">Birth date&nbsp;&nbsp;{birthday || "-- -- ----"}</p>
-
-        <div className="mx-auto mt-5 grid aspect-square w-full max-w-[22rem] grid-cols-4 gap-1.5 sm:mt-6 sm:max-w-sm sm:gap-2">
+      <div ref={exportRef} className="mt-6 overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)] sm:mt-8 sm:p-8">
+        <div className="text-center">
+          <p className="font-display text-xl sm:text-2xl">{name || "Your"} Magic Square</p>
+          <p className="text-xs text-muted-foreground sm:text-sm">{birthday || "dd-mm-yyyy"}</p>
+        </div>
+        <div className="mx-auto mt-5 grid aspect-square w-full max-w-[22rem] grid-cols-4 gap-1.5 sm:mt-6 sm:max-w-sm">
           {Array.from({ length: 4 }).flatMap((_, i) =>
             Array.from({ length: 4 }).map((_, j) => {
               const key = `${i}-${j}`;
               const value = square ? square[i][j] : null;
+              const isFirstRow = i === 0 && hasSquare;
               const isHi = highlight.has(key);
               return (
                 <div
                   key={key}
-                  style={isHi ? undefined : { background: "var(--gradient-hero)" }}
                   className={
-                    "flex items-center justify-center rounded-lg font-display text-lg text-primary-foreground shadow-sm transition-all duration-300 sm:text-2xl " +
-                    (isHi ? "scale-105 bg-accent text-accent-foreground shadow-md ring-2 ring-accent" : "")
+                    "flex items-center justify-center rounded-lg font-display text-lg transition-all duration-300 sm:text-2xl " +
+                    (isHi
+                      ? "scale-105 text-foreground shadow-md"
+                      : isFirstRow
+                      ? "text-foreground"
+                      : "bg-secondary text-foreground")
+                  }
+                  style={
+                    isHi
+                      ? { background: "var(--gradient-accent)" }
+                      : isFirstRow
+                      ? { background: "oklch(0.92 0.06 80)", border: "1px solid oklch(0.78 0.14 70)" }
+                      : undefined
                   }
                 >
                   {value ?? "–"}
@@ -626,24 +597,12 @@ function AppPage() {
         {total !== null && (
           <div className="mt-5 flex flex-col items-center gap-1 text-center">
             <p className="text-xs uppercase tracking-wider text-muted-foreground sm:text-sm">Birthday Total</p>
-            <p className="font-display text-4xl text-primary sm:text-5xl">{total}</p>
-            {patternLabel && <p className="mt-1 text-xs font-medium text-muted-foreground">{patternLabel}</p>}
+            <p className="font-display text-3xl sm:text-4xl">{total}</p>
+            {patternLabel && <p className="mt-1 text-xs font-medium text-accent-foreground">{patternLabel}</p>}
+            <p className="mt-3 text-[10px] uppercase tracking-widest text-muted-foreground/70">Ramanujan Magic Square · CodeTech</p>
           </div>
         )}
-
-            <div className="mx-auto mt-5 w-[88%] space-y-5 py-1" aria-label="Two blank message lines">
-              <div className="border-b" style={{ borderColor: "#a8cbe8" }} />
-              <div className="border-b" style={{ borderColor: "#a8cbe8" }} />
-            </div>
-          </div>
-
-          <footer className="border-t-2 border-accent bg-secondary px-3 py-3 text-center">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-foreground sm:text-xs">CodeTech</p>
-            <p className="mt-0.5 text-[9px] text-muted-foreground sm:text-[10px]">Lead Developer · Sachin Sheth</p>
-          </footer>
-        </div>
       </div>
-
 
       {/* Info modal */}
       {showInfo && (
