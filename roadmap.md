@@ -1,0 +1,1 @@
+- [ ] Refine the current mobile UI to match the supplied screenshots while preserving functionality and colours
