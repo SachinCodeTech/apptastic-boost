@@ -5,12 +5,12 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-md pt-[env(safe-area-inset-top)]">
-      <div className="mx-auto grid h-14 max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 sm:h-16 sm:px-6">
-        <Link to="/" onClick={() => setOpen(false)} className="flex min-w-0 items-center gap-2">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-primary-foreground font-display text-base sm:h-9 sm:w-9 sm:text-lg" style={{ background: "var(--gradient-hero)" }}>
+      <div className="mx-auto grid h-16 max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 sm:h-16 sm:px-6">
+        <Link to="/" onClick={() => setOpen(false)} className="flex min-w-0 items-center gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground font-display text-xl shadow-sm sm:h-10 sm:w-10 sm:text-lg">
             R
           </span>
-          <span className="truncate font-display text-lg sm:text-xl">Ramanujan Square</span>
+          <span className="truncate font-display text-xl leading-none sm:text-xl">Ramanujan Square</span>
         </Link>
         <div className="flex items-center gap-2">
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground sm:flex">
@@ -30,7 +30,7 @@ export function SiteHeader() {
             aria-label="Toggle menu"
             aria-expanded={open}
             onClick={() => setOpen(v => !v)}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-card sm:hidden"
+            className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-card sm:hidden"
           >
             <span className="relative block h-3 w-4">
               <span className={"absolute left-0 h-0.5 w-4 bg-foreground transition-all " + (open ? "top-1.5 rotate-45" : "top-0")} />

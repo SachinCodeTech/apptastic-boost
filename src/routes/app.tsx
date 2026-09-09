@@ -493,76 +493,76 @@ function AppPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-16">
       <div className="text-center">
-        <h1 className="font-display text-3xl leading-tight sm:text-5xl">Generate your Magic Square</h1>
-        <p className="mt-3 px-2 text-sm text-muted-foreground sm:text-base">Enter your details — everything runs locally in your browser.</p>
+        <h1 className="font-display text-[2.45rem] leading-[1.05] sm:text-5xl">Generate your Magic Square</h1>
+        <p className="mx-auto mt-4 max-w-xl px-4 text-base leading-relaxed text-muted-foreground sm:text-base">Enter your details — everything runs locally in your browser.</p>
       </div>
 
-      <div className="mt-6 grid gap-5 rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)] sm:mt-10 sm:gap-6 sm:p-8">
-        <div className="grid gap-4 sm:grid-cols-2">
+      <div className="mt-8 grid gap-5 rounded-[1.75rem] border border-border bg-card p-6 shadow-[var(--shadow-card)] sm:mt-10 sm:gap-6 sm:p-8">
+        <div className="grid gap-5 sm:grid-cols-2">
           <label className="block">
-            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Your Name</span>
+            <span className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">Your Name</span>
             <input
               value={name}
               onChange={e => setName(e.target.value)}
               maxLength={50}
               placeholder="e.g., Ramanujan"
-              className="mt-2 h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
+              className="mt-2 h-14 w-full rounded-xl border border-input bg-field px-4 text-lg text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/30"
             />
           </label>
           <label className="block">
-            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Birthday (dd-mm-yyyy)</span>
+            <span className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">Birthday (dd-mm-yyyy)</span>
             <input
               value={birthday}
               onChange={e => onBirthdayChange(e.target.value)}
               maxLength={10}
               placeholder="22-12-1887"
               inputMode="numeric"
-              className="mt-2 h-11 w-full rounded-lg border border-input bg-background px-3 font-mono text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
+              className="mt-2 h-14 w-full rounded-xl border border-input bg-field px-4 font-mono text-lg text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/30"
             />
           </label>
         </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}
-        {showSuccess && <p className="text-sm font-medium" style={{ color: "oklch(0.55 0.18 150)" }}>Magic Square Generated!</p>}
+        {showSuccess && <p className="text-sm font-medium text-success">Magic Square Generated!</p>}
         {exportMessage && <p className="text-sm font-medium text-muted-foreground">{exportMessage}</p>}
 
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+        <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
           <button onClick={generate}
-            className="col-span-2 inline-flex h-11 items-center justify-center rounded-lg px-4 text-sm font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5 sm:col-span-1"
+            className="col-span-2 inline-flex h-14 items-center justify-center rounded-xl px-4 text-base font-semibold text-primary-foreground shadow-[var(--shadow-elegant)] transition-transform hover:-translate-y-0.5 sm:col-span-1"
             style={{ background: "var(--gradient-hero)" }}>
             Generate
           </button>
           <button onClick={() => isCycling ? stopCycling() : startCycling()} disabled={!hasSquare}
-            className="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-medium hover:bg-secondary disabled:opacity-40">
+            className="inline-flex min-h-14 items-center justify-center rounded-xl border border-border bg-card px-3 text-sm font-medium hover:bg-secondary disabled:opacity-40 sm:px-4">
             {isCycling ? "Stop Cycling" : "Cycle Patterns"}
           </button>
           <button onClick={shareAsPdf} disabled={!hasSquare || isExporting || !shareFilesReady}
-            className="inline-flex h-11 items-center justify-center rounded-lg px-4 text-sm font-semibold text-primary-foreground disabled:opacity-40"
+            className="inline-flex min-h-14 items-center justify-center rounded-xl px-3 text-sm font-semibold text-primary-foreground shadow-sm disabled:opacity-40 sm:px-4"
             style={{ background: "var(--gradient-accent)" }}>
             {exportingKind === "pdf" ? "Preparing..." : "Share PDF"}
           </button>
           <button onClick={shareAsImage} disabled={!hasSquare || isExporting || !shareFilesReady}
-            className="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-medium hover:bg-secondary disabled:opacity-40">
+            className="inline-flex min-h-14 items-center justify-center rounded-xl border border-border bg-card px-3 text-sm font-medium hover:bg-secondary disabled:opacity-40 sm:px-4">
             {exportingKind === "image" ? "Preparing..." : "Share Image"}
           </button>
           <button onClick={clearAll}
-            className="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-medium hover:bg-secondary">
+            className="inline-flex min-h-14 items-center justify-center rounded-xl border border-border bg-card px-3 text-sm font-medium hover:bg-secondary sm:px-4">
             Clear
           </button>
           <button onClick={() => setShowInfo(true)}
-            className="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-medium hover:bg-secondary">
+            className="inline-flex min-h-14 items-center justify-center rounded-xl border border-border bg-card px-3 text-sm font-medium hover:bg-secondary sm:px-4">
             Info
           </button>
         </div>
       </div>
 
       {/* The square (exportable region) */}
-      <div ref={exportRef} className="mt-6 overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)] sm:mt-8 sm:p-8">
+      <div ref={exportRef} className="mt-8 overflow-hidden rounded-[1.75rem] border border-border bg-card p-6 shadow-[var(--shadow-card)] sm:mt-8 sm:p-8">
         <div className="text-center">
           <p className="font-display text-xl sm:text-2xl">{name || "Your"} Magic Square</p>
           <p className="text-xs text-muted-foreground sm:text-sm">{birthday || "dd-mm-yyyy"}</p>
         </div>
-        <div className="mx-auto mt-5 grid aspect-square w-full max-w-[22rem] grid-cols-4 gap-1.5 sm:mt-6 sm:max-w-sm">
+        <div className="mx-auto mt-7 grid aspect-square w-full max-w-[25rem] grid-cols-4 gap-2 sm:mt-8 sm:max-w-sm">
           {Array.from({ length: 4 }).flatMap((_, i) =>
             Array.from({ length: 4 }).map((_, j) => {
               const key = `${i}-${j}`;
@@ -573,18 +573,18 @@ function AppPage() {
                 <div
                   key={key}
                   className={
-                    "flex items-center justify-center rounded-lg font-display text-lg transition-all duration-300 sm:text-2xl " +
+                     "flex items-center justify-center rounded-xl font-display text-[1.35rem] transition-all duration-300 sm:text-2xl " +
                     (isHi
-                      ? "scale-105 text-foreground shadow-md"
+                       ? "scale-[1.02] text-square-highlight-foreground shadow-md"
                       : isFirstRow
                       ? "text-foreground"
-                      : "bg-secondary text-foreground")
+                       : "bg-square-soft text-foreground")
                   }
                   style={
                     isHi
                       ? { background: "var(--gradient-accent)" }
-                      : isFirstRow
-                      ? { background: "oklch(0.92 0.06 80)", border: "1px solid oklch(0.78 0.14 70)" }
+                       : isFirstRow
+                       ? { background: "var(--color-square-highlight)", border: "1px solid var(--color-accent)" }
                       : undefined
                   }
                 >
