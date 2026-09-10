@@ -8,7 +8,11 @@ export const Route = createFileRoute("/app")({
       { name: "description", content: "Enter your name and birthday to generate a personal Ramanujan 4×4 magic square. Cycle through 21 hidden patterns and share as PDF." },
       { property: "og:title", content: "Generate your Magic Square" },
       { property: "og:description", content: "Personal Ramanujan magic square from your birthday." },
+      { property: "og:type", content: "website" },
       { property: "og:url", content: "https://apptastic-boost.lovable.app/app" },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Generate your Magic Square" },
+      { name: "twitter:description", content: "Personal Ramanujan magic square from your birthday." },
     ],
     links: [{ rel: "canonical", href: "https://apptastic-boost.lovable.app/app" }],
   }),
@@ -502,6 +506,9 @@ function AppPage() {
           <label className="block">
             <span className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">Your Name</span>
             <input
+              type="text"
+              autoComplete="name"
+              enterKeyHint="next"
               value={name}
               onChange={e => setName(e.target.value)}
               maxLength={50}
@@ -512,6 +519,9 @@ function AppPage() {
           <label className="block">
             <span className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">Birthday (dd-mm-yyyy)</span>
             <input
+              type="text"
+              autoComplete="bday"
+              enterKeyHint="done"
               value={birthday}
               onChange={e => onBirthdayChange(e.target.value)}
               maxLength={10}

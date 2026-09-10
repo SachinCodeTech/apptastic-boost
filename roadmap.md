@@ -1,1 +1,3 @@
-- [ ] Refine the current mobile UI to match the supplied screenshots while preserving functionality and colours
+- [x] Refine the current mobile UI to match the supplied screenshots while preserving functionality and colours
+- [x] Complete installable-app metadata and cross-device compatibility pass
+- [x] Verify offline shell, icons, screenshots, and responsive layouts
