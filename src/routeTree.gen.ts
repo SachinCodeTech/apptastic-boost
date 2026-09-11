@@ -9,16 +9,28 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VersionHistoryRouteImport } from './routes/version-history'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as StoreListingRouteImport } from './routes/store-listing'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
+const VersionHistoryRoute = VersionHistoryRouteImport.update({
+  id: '/version-history',
+  path: '/version-history',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoreListingRoute = StoreListingRouteImport.update({
+  id: '/store-listing',
+  path: '/store-listing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -53,7 +65,9 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/store-listing': typeof StoreListingRoute
   '/terms': typeof TermsRoute
+  '/version-history': typeof VersionHistoryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -61,7 +75,9 @@ export interface FileRoutesByTo {
   '/app': typeof AppRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/store-listing': typeof StoreListingRoute
   '/terms': typeof TermsRoute
+  '/version-history': typeof VersionHistoryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -70,13 +86,31 @@ export interface FileRoutesById {
   '/app': typeof AppRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/store-listing': typeof StoreListingRoute
   '/terms': typeof TermsRoute
+  '/version-history': typeof VersionHistoryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/app' | '/privacy' | '/sitemap.xml' | '/terms'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/app'
+    | '/privacy'
+    | '/sitemap.xml'
+    | '/store-listing'
+    | '/terms'
+    | '/version-history'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/app' | '/privacy' | '/sitemap.xml' | '/terms'
+  to:
+    | '/'
+    | '/about'
+    | '/app'
+    | '/privacy'
+    | '/sitemap.xml'
+    | '/store-listing'
+    | '/terms'
+    | '/version-history'
   id:
     | '__root__'
     | '/'
@@ -84,7 +118,9 @@ export interface FileRouteTypes {
     | '/app'
     | '/privacy'
     | '/sitemap.xml'
+    | '/store-listing'
     | '/terms'
+    | '/version-history'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -93,16 +129,32 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRoute
   PrivacyRoute: typeof PrivacyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  StoreListingRoute: typeof StoreListingRoute
   TermsRoute: typeof TermsRoute
+  VersionHistoryRoute: typeof VersionHistoryRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/version-history': {
+      id: '/version-history'
+      path: '/version-history'
+      fullPath: '/version-history'
+      preLoaderRoute: typeof VersionHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/store-listing': {
+      id: '/store-listing'
+      path: '/store-listing'
+      fullPath: '/store-listing'
+      preLoaderRoute: typeof StoreListingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -149,7 +201,9 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRoute,
   PrivacyRoute: PrivacyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  StoreListingRoute: StoreListingRoute,
   TermsRoute: TermsRoute,
+  VersionHistoryRoute: VersionHistoryRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
