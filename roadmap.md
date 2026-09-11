@@ -1,3 +1,7 @@
 - [x] Refine the current mobile UI to match the supplied screenshots while preserving functionality and colours
 - [x] Complete installable-app metadata and cross-device compatibility pass
 - [x] Verify offline shell, icons, screenshots, and responsive layouts
+- [x] Expand the privacy policy with local processing, browser storage, exports, and offline behavior
+- [x] Add the public version history and store listing pages
+- [x] Add navigation and sitemap entries for the store materials
+- [ ] Submit to Google Play and Apple App Store — blocked until the developer accounts, store-console access, and required support contact details are supplied
