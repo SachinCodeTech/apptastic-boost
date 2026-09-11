@@ -4,9 +4,9 @@ export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
       { title: "Privacy Policy — Ramanujan Magic Square" },
-      { name: "description", content: "Privacy policy for the Ramanujan Magic Square app by CodeTech. We do not collect any personal data." },
+      { name: "description", content: "Learn how Ramanujan Magic Square handles names, birthdays, generated squares, downloads, and offline app data." },
       { property: "og:title", content: "Privacy Policy" },
-      { property: "og:description", content: "How we handle your data — short answer: we don't collect any." },
+      { property: "og:description", content: "How names, birthdays, generated squares, downloads, and offline app data are handled." },
       { property: "og:type", content: "article" },
       { property: "og:url", content: "https://apptastic-boost.lovable.app/privacy" },
       { name: "twitter:card", content: "summary" },
@@ -20,31 +20,43 @@ export const Route = createFileRoute("/privacy")({
 
 function Privacy() {
   return (
-    <article className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
-      <h1 className="font-display text-5xl">Privacy Policy</h1>
-      <p className="mt-2 text-sm text-muted-foreground">Last updated: June 15, 2026</p>
-      <section className="mt-8 space-y-6 text-muted-foreground">
-        <div>
-          <h2 className="font-display text-2xl text-foreground">Summary</h2>
-          <p className="mt-2">Ramanujan Magic Square does not collect, store, or transmit any personal information. The name and birthday you enter stay entirely inside your browser and are used only to compute and display your magic square locally.</p>
-        </div>
-        <div>
-          <h2 className="font-display text-2xl text-foreground">Data we collect</h2>
-          <p className="mt-2">None. We do not use cookies, analytics, advertising SDKs, or any third-party services that profile users. There is no account system and no server-side database of users.</p>
-        </div>
-        <div>
-          <h2 className="font-display text-2xl text-foreground">PDF export</h2>
-          <p className="mt-2">When you tap "Share PDF", the document is generated entirely on your device and downloaded directly. It is never uploaded to a server.</p>
-        </div>
-        <div>
-          <h2 className="font-display text-2xl text-foreground">Children's privacy</h2>
-          <p className="mt-2">The app is safe for all ages. Because we collect no data, there are no special considerations for users under 13.</p>
-        </div>
-        <div>
-          <h2 className="font-display text-2xl text-foreground">Contact</h2>
-          <p className="mt-2">For questions, contact CodeTech — Lead Developer Sachin Sheth.</p>
-        </div>
-      </section>
+    <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
+      <header className="max-w-2xl">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-foreground">CodeTech · Privacy</p>
+        <h1 className="mt-3 font-display text-5xl leading-none sm:text-6xl">Privacy Policy</h1>
+        <p className="mt-4 text-sm text-muted-foreground">Last updated: September 11, 2026</p>
+        <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
+          Ramanujan Magic Square is designed to work without an account, advertising profile, or personal-data collection system.
+        </p>
+      </header>
+
+      <div className="mt-12 space-y-10 text-muted-foreground">
+        <section>
+          <h2 className="font-display text-3xl text-foreground">What happens when you generate a square</h2>
+          <p className="mt-3 leading-relaxed">The name and birthday you enter are held in the page while you use the app. The birthday is split into day, month, century, and year values in your browser, then used to calculate and display the 4×4 magic square and its matching patterns. This calculation happens locally on your device.</p>
+        </section>
+        <section>
+          <h2 className="font-display text-3xl text-foreground">What is stored</h2>
+          <p className="mt-3 leading-relaxed">The app does not create an account or send your name, birthday, or square to CodeTech. The current page does not use local storage, session storage, or a personal-data database. Generated values and prepared share files exist in temporary page memory and are cleared when you clear the form or close the page.</p>
+          <p className="mt-3 leading-relaxed">Your browser or operating system may keep files you choose to download, such as a PNG or PDF, in its own Downloads area. That storage is controlled by your device, not by this app.</p>
+        </section>
+        <section>
+          <h2 className="font-display text-3xl text-foreground">Sharing and exports</h2>
+          <p className="mt-3 leading-relaxed">When you choose Share PDF, Share Image, or a download fallback, the card is created on your device. If you use your operating system’s share sheet, the destination you select receives the file according to that service’s own privacy policy. CodeTech does not receive a copy through this app.</p>
+        </section>
+        <section>
+          <h2 className="font-display text-3xl text-foreground">Offline use and technical data</h2>
+          <p className="mt-3 leading-relaxed">The installable version caches the app shell and its published assets so the interface can open when you are offline. This cache contains app files, icons, and screenshots—not your name, birthday, or generated square. The hosting platform and your network provider may process standard technical request data when the app files are requested; CodeTech does not use this app to build a personal profile.</p>
+        </section>
+        <section>
+          <h2 className="font-display text-3xl text-foreground">Children and age guidance</h2>
+          <p className="mt-3 leading-relaxed">The app is an educational mathematics utility and contains no account, social feed, advertising, or in-app purchase flow. Parents and guardians should remember that anything shared through the device’s share sheet is handled by the selected service.</p>
+        </section>
+        <section>
+          <h2 className="font-display text-3xl text-foreground">Changes and contact</h2>
+          <p className="mt-3 leading-relaxed">If the app’s data practices change, this page will be updated before the change takes effect. Privacy questions can be directed to CodeTech, Lead Developer Sachin Sheth. A public support email has not been supplied for this listing yet, so the store submission should add the verified contact address you want customers to use.</p>
+        </section>
+      </div>
     </article>
   );
 }

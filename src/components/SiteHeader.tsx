@@ -17,6 +17,7 @@ export function SiteHeader() {
             <Link to="/app" activeProps={{ className: "text-foreground" }} className="hover:text-foreground transition-colors">App</Link>
             <Link to="/about" activeProps={{ className: "text-foreground" }} className="hover:text-foreground transition-colors">About</Link>
             <Link to="/privacy" activeProps={{ className: "text-foreground" }} className="hover:text-foreground transition-colors">Privacy</Link>
+            <Link to="/store-listing" activeProps={{ className: "text-foreground" }} className="hover:text-foreground transition-colors">Store</Link>
           </nav>
           <Link
             to="/app"
@@ -47,6 +48,8 @@ export function SiteHeader() {
               { to: "/app", label: "Open App" },
               { to: "/about", label: "About" },
               { to: "/privacy", label: "Privacy" },
+              { to: "/version-history", label: "Version history" },
+              { to: "/store-listing", label: "Store listing" },
               { to: "/terms", label: "Terms" },
             ].map(l => (
               <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="rounded-md px-3 py-3 text-foreground hover:bg-secondary">
